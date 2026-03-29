@@ -14,3 +14,4 @@
 [ ] Моделирование данных (Data Modeling): ER-диаграмма или UML -> documents/120.data-model.md
 (не делаем, пропускаем) Проектирование API и интеграционных контрактов (если применимо) -> documents/130.api-contracts.md
 [ ] Requirements Traceability Matrix (матрица трассировки: проверка, что все учли) -> documents/140.requirements-check.md
+[ ] Создание логической схемы системы (архитектурная диаграмма) -> documents/logic_scheme.md
