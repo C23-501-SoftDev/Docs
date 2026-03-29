@@ -90,4 +90,3 @@ graph TB
     class Client,Server,WikiEditor default;
     class FileSystem,Database storage;
     class AuthToken auth;
-    ```
