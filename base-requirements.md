@@ -241,7 +241,7 @@ stateDiagram-v2
 4. **Интерфейс:** Система оптимизирована только для использования на Desktop-устройствах.
 
 ### Технические требования
-1. **Стек технологий:** Применение Spring Framework.
+1. **Стек технологий:** Java с применением Spring Framework, JavaScript, PostgreSQL 18, Maven.
 2. **Архитектура:** Чистая архитектура (Clean Architecture) или аналоги.
 3. **API:** Реализация RESTful API с использованием OpenAPI/Swagger.
 4. **Безопасность:** Аутентификация по логину и паролю (Forms Authentication).
