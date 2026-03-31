@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Визуализация Бэклога</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f4f7f6;
+      }
+      .header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 15px;
+      }
+      h1 {
+        margin: 0;
+        color: #2c3e50;
+        font-size: 1.8em;
+      }
+      .controls {
+        display: flex;
+        gap: 10px;
+      }
+      .btn {
+        background: #fff;
+        border: 1px solid #ddd;
+        padding: 5px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9em;
+        margin: 0 5px;
+        transition: all 0.2s;
+      }
+      .btn:hover {
+        background: #f0f0f0;
+        border-color: #ccc;
+      }
+      .backlog-container {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .node {
+        margin-left: 15px;
+        border-left: 1px solid #eee;
+        padding-left: 10px;
+        margin-bottom: 4px;
+      }
+      .node-content {
+        padding: 4px 8px;
+        border-radius: 4px;
+        margin-bottom: 2px;
+        transition: background 0.2s;
+        display: flex;
+        flex-direction: column;
+        cursor: pointer;
+        position: relative;
+      }
+      .node-content:hover {
+        background: #f9f9f9;
+      }
+      .type-badge {
+        display: inline-block;
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-size: 0.7em;
+        font-weight: bold;
+        margin-right: 8px;
+        text-transform: uppercase;
+        vertical-align: middle;
+      }
+      .Epic {
+        background-color: #e74c3c;
+        color: white;
+      }
+      .Feature {
+        background-color: #3498db;
+        color: white;
+      }
+      .Task {
+        background-color: #2ecc71;
+        color: white;
+      }
+
+      .id {
+        font-weight: bold;
+        color: #95a5a6;
+        margin-right: 5px;
+        font-size: 0.85em;
+      }
+      .title {
+        font-weight: 600;
+        font-size: 1em;
+      }
+      .description {
+        display: block;
+        font-size: 0.85em;
+        color: #7f8c8d;
+        margin-top: 2px;
+        line-height: 1.3;
+      }
+      .tags {
+        display: inline-flex;
+        gap: 4px;
+        margin-left: auto;
+        vertical-align: middle;
+      }
+      .tag {
+        display: inline-block;
+        background: #eef2f3;
+        padding: 1px 5px;
+        border-radius: 3px;
+        font-size: 0.7em;
+        color: #7f8c8d;
+        border: 1px solid #dfe6e9;
+      }
+      .node-header {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+      .error {
+        color: #e74c3c;
+        padding: 20px;
+        text-align: center;
+        border: 1px solid #e74c3c;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header-container">
+      <h1>Иерархия Бэклога</h1>
+      <div class="controls">
+        <button class="btn" onclick="toggleAll(false)">Свернуть все</button>
+        <button class="btn" onclick="toggleAll(true)">Развернуть все</button>
+      </div>
+    </div>
+    <div id="backlog" class="backlog-container">Загрузка данных...</div>
+
+    <script>
+      async function loadBacklog() {
+        const container = document.getElementById("backlog");
+        try {
+          const response = await fetch("backlog.json");
+          if (!response.ok)
+            throw new Error("Не удалось загрузить backlog.json");
+          const data = await response.json();
+
+          renderTree(data, container);
+        } catch (error) {
+          container.innerHTML = `<div class="error">Ошибка: ${error.message}<br>Убедитесь, что файл backlog.json находится в той же папке и доступен через веб-сервер.</div>`;
+        }
+      }
+
+      function toggleAll(expand) {
+        const containers = document.querySelectorAll(".children-container");
+        const icons = document.querySelectorAll(".toggle-icon");
+        containers.forEach((c) => (c.style.display = expand ? "block" : "none"));
+        icons.forEach((i) => (i.textContent = expand ? "▼" : "▶"));
+      }
+
+      function renderTree(nodes, container) {
+        container.innerHTML = "";
+        if (!nodes || nodes.length === 0) {
+          container.innerHTML = "Бэклог пуст";
+          return;
+        }
+
+        const list = document.createElement("div");
+        nodes.forEach((node) => {
+          list.appendChild(createNodeElement(node));
+        });
+        container.appendChild(list);
+      }
+
+      function createNodeElement(node) {
+        const div = document.createElement("div");
+        div.className = "node";
+
+        const content = document.createElement("div");
+        content.className = "node-content";
+
+        const hasChildren = node.children && node.children.length > 0;
+        const toggleIcon = hasChildren
+          ? `<span class="toggle-icon" style="margin-right: 5px; font-size: 0.8em; color: #95a5a6;">▼</span>`
+          : `<span style="margin-right: 17px;"></span>`;
+
+        const tagsHtml =
+          node.metadata && node.metadata.tags
+            ? `<div class="tags">${node.metadata.tags.map((t) => `<span class="tag">${t}</span>`).join("")}</div>`
+            : "";
+
+        content.innerHTML = `
+                <div class="node-header">
+                    ${toggleIcon}
+                    <span class="type-badge ${node.type}">${node.type}</span>
+                    <span class="id">${node.id}</span>
+                    <span class="title">${node.title}</span>
+                    ${tagsHtml}
+                </div>
+                ${node.description ? `<span class="description" style="margin-left: ${hasChildren ? "20" : "20"}px;">${node.description}</span>` : ""}
+            `;
+
+        div.appendChild(content);
+
+        if (hasChildren) {
+          const childrenContainer = document.createElement("div");
+          childrenContainer.className = "children-container";
+          node.children.forEach((child) => {
+            childrenContainer.appendChild(createNodeElement(child));
+          });
+          div.appendChild(childrenContainer);
+
+          content.onclick = (e) => {
+            e.stopPropagation();
+            const isHidden = childrenContainer.style.display === "none";
+            childrenContainer.style.display = isHidden ? "block" : "none";
+            const icon = content.querySelector(".toggle-icon");
+            if (icon) icon.textContent = isHidden ? "▼" : "▶";
+          };
+        }
+
+        return div;
+      }
+
+      window.onload = loadBacklog;
+    </script>
+  </body>
+</html>
