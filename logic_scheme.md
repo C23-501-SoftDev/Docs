@@ -63,3 +63,44 @@
 5. Поиск выполняется по индексам, хранящимся в базе данных; сервер возвращает результаты.
 
 ## 3. Логическая схема
+```mermaid
+graph TB
+    User((Пользователь)) -->|Взаимодействие| Client[Клиентская часть\nFrontend]
+
+    subgraph Frontend [Фронтенд]
+        Client
+    end
+
+    subgraph Backend [Бэкенд]
+        Server[Сервер\nAPI & Business Logic]
+        WikiEditor[Wiki-редактор]
+        FileSystem[Файловая система\nSMB + Git]
+        Database[(База данных)]
+    end
+
+    subgraph Auth [Подсистема аутентификации]
+        AuthToken[Выдача и валидация\nJWT-токенов]
+    end
+
+    Client <-->|HTTP / API| Server
+    Server <-->|Статика + JSON| Client
+
+    Server <-->|Взаимодействие| WikiEditor
+    Server <-->|Чтение/запись файлов| FileSystem
+    Server <-->|Метаданные / Индексы| Database
+
+    WikiEditor -.->|Область хранения\nи редактирования| FileSystem
+
+    Client -.->|Запрос токена| AuthToken
+    AuthToken -->|Токен| Client
+    Server -.->|Валидация токена| AuthToken
+
+    classDef default fill:#f9f9f9,stroke:#333,stroke-width:2px;
+    classDef external fill:#e1f5fe,stroke:#01579b;
+    classDef storage fill:#fff9c4,stroke:#fbc02d;
+    classDef auth fill:#ffe0b2,stroke:#e65100;
+
+    class User external;
+    class Client,Server,WikiEditor default;
+    class FileSystem,Database storage;
+    class AuthToken auth;
