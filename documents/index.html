@@ -138,9 +138,77 @@
         border: 1px solid #e74c3c;
         border-radius: 4px;
       }
+      /* Styles for Requirements Modal */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+      .modal-content {
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        max-width: 800px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        position: relative;
+      }
+      .modal-close {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 24px;
+        cursor: pointer;
+        color: #95a5a6;
+      }
+      .req-doc-title {
+        font-weight: bold;
+        color: #2c3e50;
+        margin-top: 15px;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 5px;
+      }
+      .req-text-item {
+        margin-left: 20px;
+        padding: 5px 0;
+        border-left: 2px solid #ecf0f1;
+        padding-left: 15px;
+        font-style: italic;
+        font-size: 0.9em;
+        color: #34495e;
+      }
+      .req-btn {
+        font-size: 0.75em;
+        padding: 2px 8px;
+        margin-left: 10px;
+        background: #f8f9fa;
+        color: #7f8c8d;
+        border: 1px solid #dee2e6;
+      }
+      .req-btn:hover {
+        background: #e9ecef;
+        color: #2c3e50;
+      }
     </style>
   </head>
   <body>
+    <div id="reqModal" class="modal-overlay" onclick="closeModal()">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="closeModal()">&times;</span>
+        <h2 id="modalTitle">Требования</h2>
+        <div id="modalBody"></div>
+      </div>
+    </div>
+
     <div class="header-container">
       <h1>Иерархия Бэклога</h1>
       <div class="controls">
@@ -151,6 +219,9 @@
     <div id="backlog" class="backlog-container">Загрузка данных...</div>
 
     <script>
+      // Global storage for requirements to avoid JSON injection in HTML attributes
+      const requirementsMap = new Map();
+
       async function loadBacklog() {
         const container = document.getElementById("backlog");
         try {
@@ -170,6 +241,40 @@
         const icons = document.querySelectorAll(".toggle-icon");
         containers.forEach((c) => (c.style.display = expand ? "block" : "none"));
         icons.forEach((i) => (i.textContent = expand ? "▼" : "▶"));
+      }
+
+      function showRequirements(id, title) {
+        const modal = document.getElementById("reqModal");
+        const modalTitle = document.getElementById("modalTitle");
+        const modalBody = document.getElementById("modalBody");
+        const reqs = requirementsMap.get(id);
+
+        modalTitle.textContent = `Требования для: [${id}] ${title}`;
+        modalBody.innerHTML = "";
+
+        if (!reqs || reqs.length === 0) {
+          modalBody.innerHTML = "<p>Требования не указаны</p>";
+        } else {
+          reqs.forEach((req) => {
+            const docDiv = document.createElement("div");
+            docDiv.className = "req-doc-title";
+            docDiv.textContent = `Документ: ${req.document}`;
+            modalBody.appendChild(docDiv);
+
+            req.texts.forEach((text) => {
+              const textDiv = document.createElement("div");
+              textDiv.className = "req-text-item";
+              textDiv.textContent = text;
+              modalBody.appendChild(textDiv);
+            });
+          });
+        }
+
+        modal.style.display = "flex";
+      }
+
+      function closeModal() {
+        document.getElementById("reqModal").style.display = "none";
       }
 
       function renderTree(nodes, container) {
@@ -203,12 +308,21 @@
             ? `<div class="tags">${node.metadata.tags.map((t) => `<span class="tag">${t}</span>`).join("")}</div>`
             : "";
 
+        const reqs = node.metadata && node.metadata.requirements_check ? node.metadata.requirements_check : null;
+        let reqBtnHtml = "";
+        if (reqs) {
+          requirementsMap.set(node.id, reqs);
+          const escapedTitle = node.title.replace(/'/g, "\\'");
+          reqBtnHtml = `<button class="btn req-btn" onclick="event.stopPropagation(); showRequirements('${node.id}', '${escapedTitle}')">Требования</button>`;
+        }
+
         content.innerHTML = `
                 <div class="node-header">
                     ${toggleIcon}
                     <span class="type-badge ${node.type}">${node.type}</span>
                     <span class="id">${node.id}</span>
                     <span class="title">${node.title}</span>
+                    ${reqBtnHtml}
                     ${tagsHtml}
                 </div>
                 ${node.description ? `<span class="description" style="margin-left: ${hasChildren ? "20" : "20"}px;">${node.description}</span>` : ""}

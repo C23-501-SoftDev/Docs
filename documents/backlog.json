@@ -8,6 +8,16 @@
       "tags": [
         "Core",
         "Content"
+
+      ],
+      "requirements_check": [
+        {
+          "document": "base-requirements.md",
+          "texts": [
+            "База знаний представляет собой веб-приложение, предназначенное для централизованного хранения и управления технической и аналитической документацией.",
+            "Работа с документами: Создание, редактирование и просмотр различных типов документов"
+          ]
+        }
       ]
     },
     "children": [
@@ -20,6 +30,20 @@
           "tags": [
             "UI",
             "Editor"
+          ],
+          "requirements_check": [
+            {
+              "document": "base-requirements.md",
+              "texts": [
+                "Система позволяет пользователям создавать, редактировать и просматривать документы с использованием Wiki-разметки"
+              ]
+            },
+            {
+              "document": "logic_scheme.md",
+              "texts": [
+                "Включает встраиваемый WYSIWYG-редактор для работы с Wiki-контентом."
+              ]
+            }
           ]
         },
         "children": [
@@ -34,6 +58,14 @@
               "tags": [
                 "Frontend",
                 "Markdown"
+              ],
+              "requirements_check": [
+                {
+                  "document": "logic_scheme.md",
+                  "texts": [
+                    "Включает встраиваемый WYSIWYG-редактор для работы с Wiki-контентом."
+                  ]
+                }
               ]
             },
             "children": []
@@ -49,6 +81,38 @@
               "tags": [
                 "Backend",
                 "API"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "CRUD — (Create, Read, Update, Delete) базовые операции работы с данными",
+                    "Пользователь с ролью \"Редактор\" должен иметь возможность создать документ, заполнив необходимые атрибуты."
+                  ]
+                }
+              ]
+            },
+            "children": []
+          },
+          {
+            "id": "US1.1.3",
+            "type": "UserStory",
+            "title": "Валидация входящих данных при сохранении",
+            "as_a": "Система",
+            "i_want": "проверять корректность всех полей документа перед сохранением",
+            "so_that": "избежать повреждения данных и ошибок в БД.",
+            "metadata": {
+              "tags": [
+                "Backend",
+                "Validation"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Валидация входящих данных."
+                  ]
+                }
               ]
             },
             "children": []
@@ -63,6 +127,14 @@
         "metadata": {
           "tags": [
             "Templates"
+          ],
+          "requirements_check": [
+            {
+              "document": "base-requirements.md",
+              "texts": [
+                "Использование шаблонов: Наличие предустановленных шаблонов документов для различных ролей (Разработчик, Аналитик, Администратор)."
+              ]
+            }
           ]
         },
         "children": [
@@ -77,6 +149,14 @@
               "tags": [
                 "Backend",
                 "Logic"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Система предоставляет специализированные шаблоны документов в зависимости от роли пользователя"
+                  ]
+                }
               ]
             },
             "children": []
@@ -92,6 +172,14 @@
               "tags": [
                 "Backend",
                 "Feature"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Требования к системе: Номер (выставляется автоматически)"
+                  ]
+                }
               ]
             },
             "children": []
@@ -107,6 +195,14 @@
           "tags": [
             "Files",
             "Attachments"
+          ],
+          "requirements_check": [
+            {
+              "document": "base-requirements.md",
+              "texts": [
+                "Файловые вложения: Управление вложенными файлами внутри документов."
+              ]
+            }
           ]
         },
         "children": [
@@ -122,6 +218,21 @@
                 "Backend",
                 "SMB",
                 "UI"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Прикрепление файлов: Возможность загружать файлы и прикреплять их к документу."
+                  ]
+                },
+                {
+                  "document": "logic_scheme.md",
+                  "texts": [
+                    "Физическое хранилище Wiki-файлов (текстовые файлы в формате Markdown, изображения, вложения).",
+                    "Доступ организован по протоколу SMB."
+                  ]
+                }
               ]
             },
             "children": []
@@ -139,6 +250,15 @@
       "tags": [
         "Git",
         "Versioning"
+      ],
+      "requirements_check": [
+        {
+          "document": "base-requirements.md",
+          "texts": [
+            "Версионность: Ведение истории изменений документов с возможностью сравнения и отката версий.",
+            "Каждый документ в системе проходит определенный жизненный цикл (набор статусов)"
+          ]
+        }
       ]
     },
     "children": [
@@ -150,6 +270,14 @@
         "metadata": {
           "tags": [
             "Workflow"
+          ],
+          "requirements_check": [
+            {
+              "document": "base-requirements.md",
+              "texts": [
+                "Статусы документа: 1. Черновик (Draft), 2. Опубликован (Published), 3. Удален (Deleted / Soft-delete)"
+              ]
+            }
           ]
         },
         "children": [
@@ -163,6 +291,15 @@
             "metadata": {
               "tags": [
                 "Backend"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Черновик (Draft): Начальный статус. Документ доступен только автору и администраторам.",
+                    "Опубликован (Published): Документ доступен для чтения всем пользователям"
+                  ]
+                }
               ]
             },
             "children": []
@@ -178,6 +315,14 @@
               "tags": [
                 "Backend",
                 "API"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Процесс Soft-удаления: При удалении документа редактором, он помечается как удаленный (смена флага/статуса), но не стирается из БД."
+                  ]
+                }
               ]
             },
             "children": []
@@ -193,6 +338,14 @@
               "tags": [
                 "Backend",
                 "Admin"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Физическое удаление (Hard-delete) доступно только Администратору"
+                  ]
+                }
               ]
             },
             "children": []
@@ -208,6 +361,20 @@
           "tags": [
             "Git",
             "Diff"
+          ],
+          "requirements_check": [
+            {
+              "document": "base-requirements.md",
+              "texts": [
+                "Версионность документов (все категории): История изменений (Историчность)"
+              ]
+            },
+            {
+              "document": "logic_scheme.md",
+              "texts": [
+                "Поверх файлов настроен Git, обеспечивающий версионность каждой страницы"
+              ]
+            }
           ]
         },
         "children": [
@@ -222,6 +389,20 @@
               "tags": [
                 "Backend",
                 "Git"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Каждое сохранение опубликованного документа создает новую версию в Git."
+                  ]
+                },
+                {
+                  "document": "logic_scheme.md",
+                  "texts": [
+                    "Сервер сохраняет файл в файловую систему, фиксирует изменения через Git (создаёт коммит)"
+                  ]
+                }
               ]
             },
             "children": []
@@ -237,6 +418,20 @@
               "tags": [
                 "UI",
                 "API"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Просмотр версий: Возможность просмотра любой предыдущей версии документа."
+                  ]
+                },
+                {
+                  "document": "logic_scheme.md",
+                  "texts": [
+                    "Хранит служебную информацию: метаданные о Git-версиях (хэши коммитов, авторы, даты, комментарии)"
+                  ]
+                }
               ]
             },
             "children": []
@@ -252,6 +447,14 @@
               "tags": [
                 "UI",
                 "Frontend"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Сравнение версий: Возможность визуального сравнения состояния документа «до» и «после» конкретной правки."
+                  ]
+                }
               ]
             },
             "children": []
@@ -267,6 +470,14 @@
               "tags": [
                 "Backend",
                 "Logic"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Откат изменений: Возможность восстановления документа до любой из предыдущих версий пользователем с правами редактора."
+                  ]
+                }
               ]
             },
             "children": []
@@ -284,6 +495,15 @@
       "tags": [
         "UI",
         "Search"
+      ],
+      "requirements_check": [
+        {
+          "document": "base-requirements.md",
+          "texts": [
+            "Навигация: Система навигации по документам через оглавление и списки.",
+            "Поиск и навигация (все категории)"
+          ]
+        }
       ]
     },
     "children": [
@@ -295,6 +515,14 @@
         "metadata": {
           "tags": [
             "Search"
+          ],
+          "requirements_check": [
+            {
+              "document": "base-requirements.md",
+              "texts": [
+                "Поиск и фильтрация: Реализация поиска по названию документа и фильтрация по дате создания/изменения или категории."
+              ]
+            }
           ]
         },
         "children": [
@@ -309,6 +537,15 @@
               "tags": [
                 "Backend",
                 "Search"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Поиск по названию или тексту.",
+                    "Поиск документа: Поиск по названию или тексту."
+                  ]
+                }
               ]
             },
             "children": []
@@ -324,6 +561,14 @@
               "tags": [
                 "Backend",
                 "UI"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Поиск по дате создания/изменения."
+                  ]
+                }
               ]
             },
             "children": []
@@ -339,6 +584,14 @@
               "tags": [
                 "UI",
                 "API"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Просмотр списка: Система должна отображать список документов с поддержкой пагинации (постраничного вывода)."
+                  ]
+                }
               ]
             },
             "children": []
@@ -354,6 +607,14 @@
           "tags": [
             "Navigation",
             "UI"
+          ],
+          "requirements_check": [
+            {
+              "document": "base-requirements.md",
+              "texts": [
+                "Оглавление: Отображение иерархической структуры документов."
+              ]
+            }
           ]
         },
         "children": [
@@ -368,6 +629,14 @@
               "tags": [
                 "UI",
                 "Frontend"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Навигация через иерархическое оглавление."
+                  ]
+                }
               ]
             },
             "children": []
@@ -386,6 +655,15 @@
         "Admin",
         "Security",
         "Infrastructure"
+      ],
+      "requirements_check": [
+        {
+          "document": "base-requirements.md",
+          "texts": [
+            "Безопасность: Разграничение прав доступа на уровне пространств, документов и пользователей.",
+            "Управление пользователями и пространствами (администратор)"
+          ]
+        }
       ]
     },
     "children": [
@@ -398,6 +676,15 @@
           "tags": [
             "Auth",
             "RBAC"
+          ],
+          "requirements_check": [
+            {
+              "document": "base-requirements.md",
+              "texts": [
+                "Регистрация и авторизация (все категории)",
+                "Назначение прав: Назначение ролей и прав доступа пользователям."
+              ]
+            }
           ]
         },
         "children": [
@@ -412,6 +699,20 @@
               "tags": [
                 "DevOps",
                 "Backend"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Стек технологий: Java с применением Spring Framework, JavaScript, PostgreSQL 18, Maven."
+                  ]
+                },
+                {
+                  "document": "logic_scheme.md",
+                  "texts": [
+                    "Центральный узел обработки запросов, реализованный на Java с использованием фреймворка Spring Boot."
+                  ]
+                }
               ]
             },
             "children": []
@@ -427,6 +728,20 @@
               "tags": [
                 "Backend",
                 "Security"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Возможность аутентификации: Система должна обеспечивать вход в систему по паре \"логин/пароль\"."
+                  ]
+                },
+                {
+                  "document": "logic_scheme.md",
+                  "texts": [
+                    "Issuer (выдача) – генерирует токены после успешной аутентификации пользователя. Расположен на стороне сервера (API)."
+                  ]
+                }
               ]
             },
             "children": []
@@ -442,6 +757,14 @@
               "tags": [
                 "Backend",
                 "Security"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Назначение прав: Назначение ролей и прав доступа пользователям."
+                  ]
+                }
               ]
             },
             "children": []
@@ -457,6 +780,38 @@
               "tags": [
                 "UI",
                 "Admin"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Просмотр списка: Возможность просмотра списка всех зарегистрированных пользователей.",
+                    "Добавление: Возможность создания новых учетных записей администратором."
+                  ]
+                }
+              ]
+            },
+            "children": []
+          },
+          {
+            "id": "US4.1.5",
+            "type": "UserStory",
+            "title": "Логирование действий системы",
+            "as_a": "Администратор",
+            "i_want": "видеть журнал действий пользователей и системных событий",
+            "so_that": "проводить аудит безопасности и диагностировать ошибки.",
+            "metadata": {
+              "tags": [
+                "Backend",
+                "Audit"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Логирование действий системы."
+                  ]
+                }
               ]
             },
             "children": []
@@ -471,6 +826,15 @@
         "metadata": {
           "tags": [
             "Spaces"
+          ],
+          "requirements_check": [
+            {
+              "document": "base-requirements.md",
+              "texts": [
+                "Пространства: Группировка документов по проектам или отделам с отдельными правами доступа для каждого пространства.",
+                "Управление пространствами: Создание и настройка пространств (Spaces)"
+              ]
+            }
           ]
         },
         "children": [
@@ -485,6 +849,14 @@
               "tags": [
                 "Backend",
                 "API"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Управление пространствами: Создание и настройка пространств (Spaces)"
+                  ]
+                }
               ]
             },
             "children": []
@@ -500,6 +872,14 @@
               "tags": [
                 "Backend",
                 "Security"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "назначение ответственных редакторов и прав доступа для групп пользователей на уровне всего пространства."
+                  ]
+                }
               ]
             },
             "children": []
@@ -515,6 +895,14 @@
           "tags": [
             "Notifications",
             "Email"
+          ],
+          "requirements_check": [
+            {
+              "document": "base-requirements.md",
+              "texts": [
+                "Система рассылок (уведомлений через Email/SMTP)."
+              ]
+            }
           ]
         },
         "children": [
@@ -529,6 +917,59 @@
               "tags": [
                 "Backend",
                 "Feature"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Получение уведомлений: Получение рассылок об изменениях в документах или назначении новых прав доступа."
+                  ]
+                }
+              ]
+            },
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": "F4.4",
+        "type": "Feature",
+        "title": "Производительность системы",
+        "description": "Оптимизация времени отклика и работы под нагрузкой.",
+        "metadata": {
+          "tags": [
+            "Performance",
+            "NFR"
+          ],
+          "requirements_check": [
+            {
+              "document": "base-requirements.md",
+              "texts": [
+                "Производительность: Время отклика системы при просмотре документа не должно превышать 2 секунд при нормальной нагрузке."
+              ]
+            }
+          ]
+        },
+        "children": [
+          {
+            "id": "US4.4.1",
+            "type": "UserStory",
+            "title": "Оптимизация времени отклика при просмотре",
+            "as_a": "Пользователь",
+            "i_want": "чтобы страницы открывались быстро (до 2 секунд)",
+            "so_that": "комфортно работать с документацией без задержек.",
+            "metadata": {
+              "tags": [
+                "Backend",
+                "Performance"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Время отклика системы при просмотре документа не должно превышать 2 секунд"
+                  ]
+                }
               ]
             },
             "children": []
@@ -545,6 +986,14 @@
     "metadata": {
       "tags": [
         "Export"
+      ],
+      "requirements_check": [
+        {
+          "document": "base-requirements.md",
+          "texts": [
+            "Экспорт: Возможность выгрузки документов в форматы PDF, DOCX или HTML."
+          ]
+        }
       ]
     },
     "children": [
@@ -558,6 +1007,14 @@
             "Export",
             "PDF",
             "DOCX"
+          ],
+          "requirements_check": [
+            {
+              "document": "base-requirements.md",
+              "texts": [
+                "Экспорт документов (все категории): Форматы выгрузки: Система должна поддерживать экспорт документов в форматы PDF, DOCX и HTML."
+              ]
+            }
           ]
         },
         "children": [
@@ -572,6 +1029,14 @@
               "tags": [
                 "Backend",
                 "Markdown"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Сохранение структуры: При экспорте должно сохраняться форматирование Wiki-разметки и структура документа."
+                  ]
+                }
               ]
             },
             "children": []
@@ -587,6 +1052,14 @@
               "tags": [
                 "Backend",
                 "Library"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Форматы выгрузки: Система должна поддерживать экспорт документов в форматы PDF, DOCX и HTML."
+                  ]
+                }
               ]
             },
             "children": []
@@ -602,6 +1075,14 @@
               "tags": [
                 "Backend",
                 "Library"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Форматы выгрузки: Система должна поддерживать экспорт документов в форматы PDF, DOCX и HTML."
+                  ]
+                }
               ]
             },
             "children": []
@@ -617,6 +1098,14 @@
               "tags": [
                 "UI",
                 "Frontend"
+              ],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Экспорт документа: Возможность выгрузки содержимого документа в выбранный формат (PDF, DOCX, HTML)."
+                  ]
+                }
               ]
             },
             "children": []
