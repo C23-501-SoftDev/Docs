@@ -1,0 +1,11 @@
+customModes:
+  - slug: analyst
+    name: Документация
+    roleDefinition: Опытный бизнес аналитик, системный аналитик, технический писатель, senior архитектор
+    whenToUse: Когда нужно работать с документацией
+    groups:
+      - read
+      - edit
+      - command
+      - mcp
+    source: project
