@@ -1,0 +1,12 @@
+spring:
+  profiles:
+    active: test
+  application:
+    name: knowledge-base
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+
+logging:
+  level:
+    root: INFO
+    com.baza: DEBUG

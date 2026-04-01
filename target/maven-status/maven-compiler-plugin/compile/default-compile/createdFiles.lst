@@ -1,0 +1,7 @@
+com\baza\web\IndexController.class
+com\baza\KnowledgeBaseApplication.class
+com\baza\infrastructure\repository\UserRepository.class
+com\baza\infrastructure\config\SecurityConfig.class
+com\baza\domain\model\Role.class
+com\baza\domain\model\User.class
+com\baza\infrastructure\security\CustomUserDetailsService.class
