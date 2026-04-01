@@ -1,149 +1,150 @@
-# OPSX: Apply
+# OPSX: Применить (Apply)
 
-Implement tasks from an OpenSpec change (Experimental)
+Реализация задач из изменения OpenSpec (экспериментально)
 
-Implement tasks from an OpenSpec change.
+Реализация задач из изменения OpenSpec.
 
-**Input**: Optionally specify a change name (e.g., `/opsx:apply add-auth`). If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
+**Ввод**: Опционально укажите имя изменения (например, `/opsx:apply add-auth`). Если оно пропущено, проверьте, можно ли его определить из контекста беседы. Если контекст неясен или неоднозначен, вы ДОЛЖНЫ запросить список доступных изменений.
 
-**Steps**
+**Шаги**
 
-1. **Select the change**
+1. **Выбор изменения**
 
-   If a name is provided, use it. Otherwise:
-   - Infer from conversation context if the user mentioned a change
-   - Auto-select if only one active change exists
-   - If ambiguous, run `openspec list --json` to get available changes and use the **AskUserQuestion tool** to let the user select
+   Если имя указано, используйте его. В противном случае:
+   - Определите из контекста беседы, если пользователь упоминал изменение.
+   - Выберите автоматически, если существует только одно активное изменение.
+   - Если есть неоднозначность, выполните `openspec list --json`, чтобы получить список доступных изменений, и используйте инструмент **AskUserQuestion**, чтобы пользователь мог выбрать.
 
-   Always announce: "Using change: <name>" and how to override (e.g., `/opsx:apply <other>`).
+   Всегда сообщайте: "Используется изменение: <name>" и как его переопределить (например, `/opsx:apply <other>`).
 
-2. **Check status to understand the schema**
+2. **Проверка статуса для понимания схемы**
    ```bash
    openspec status --change "<name>" --json
    ```
-   Parse the JSON to understand:
-   - `schemaName`: The workflow being used (e.g., "spec-driven")
-   - Which artifact contains the tasks (typically "tasks" for spec-driven, check status for others)
+   Разберите JSON, чтобы понять:
+   - `schemaName`: Используемый рабочий процесс (например, "spec-driven").
+   - Какой артефакт содержит задачи (обычно "tasks" для spec-driven, проверьте статус для других).
 
-3. **Get apply instructions**
+3. **Получение инструкций по применению**
 
    ```bash
    openspec instructions apply --change "<name>" --json
    ```
 
-   This returns:
-   - Context file paths (varies by schema)
-   - Progress (total, complete, remaining)
-   - Task list with status
-   - Dynamic instruction based on current state
+   Это возвращает:
+   - Пути к файлам контекста (зависит от схемы).
+   - Прогресс (всего, завершено, осталось).
+   - Список задач со статусами.
+   - Динамическую инструкцию на основе текущего состояния.
 
-   **Handle states:**
-   - If `state: "blocked"` (missing artifacts): show message, suggest using `/opsx:continue`
-   - If `state: "all_done"`: congratulate, suggest archive
-   - Otherwise: proceed to implementation
+   **Обработка состояний:**
+   - Если `state: "blocked"` (отсутствуют артефакты): покажите сообщение, предложите использовать `/opsx:continue`.
+   - Если `state: "all_done"`: поздравьте, предложите архивацию.
+   - В противном случае: переходите к реализации.
 
-4. **Read context files**
+4. **Чтение файлов контекста**
 
-   Read the files listed in `contextFiles` from the apply instructions output.
-   The files depend on the schema being used:
-   - **spec-driven**: proposal, specs, design, tasks
-   - Other schemas: follow the contextFiles from CLI output
+   Прочитайте файлы, перечисленные в `contextFiles` из вывода инструкций по применению.
+   Файлы зависят от используемой схемы:
+   - **spec-driven**: proposal, specs, design, tasks.
+   - Другие схемы: следуйте списку `contextFiles` из вывода CLI.
 
-5. **Show current progress**
+5. **Отображение текущего прогресса**
 
-   Display:
-   - Schema being used
-   - Progress: "N/M tasks complete"
-   - Remaining tasks overview
-   - Dynamic instruction from CLI
+   Отобразите:
+   - Используемую схему.
+   - Прогресс: "Завершено задач: N из M".
+   - Обзор оставшихся задач.
+   - Динамическую инструкцию из CLI.
 
-6. **Implement tasks (loop until done or blocked)**
+6. **Реализация задач (цикл до завершения или блокировки)**
 
-   For each pending task:
-   - Show which task is being worked on
-   - Make the code changes required
-   - Keep changes minimal and focused
-   - Mark task complete in the tasks file: `- [ ]` → `- [x]`
-   - Continue to next task
+   Для каждой ожидающей задачи:
+   - Покажите, над какой задачей идет работа.
+   - Внесите необходимые изменения в код.
+   - Старайтесь делать изменения минимальными и сфокусированными.
+   - Отметьте задачу как выполненную в файле задач: `- [ ]` → `- [x]`.
+   - Переходите к следующей задаче.
 
-   **Pause if:**
-   - Task is unclear → ask for clarification
-   - Implementation reveals a design issue → suggest updating artifacts
-   - Error or blocker encountered → report and wait for guidance
-   - User interrupts
+   **Сделайте паузу, если:**
+   - Задача неясна → запросите уточнение.
+   - Реализация выявила проблему в проектировании → предложите обновить артефакты.
+   - Возникла ошибка или блокирующее обстоятельство → сообщите и ждите указаний.
+   - Пользователь прервал процесс.
 
-7. **On completion or pause, show status**
+7. **При завершении или паузе покажите статус**
 
-   Display:
-   - Tasks completed this session
-   - Overall progress: "N/M tasks complete"
-   - If all done: suggest archive
-   - If paused: explain why and wait for guidance
+   Отобразите:
+   - Задачи, выполненные за эту сессию.
+   - Общий прогресс: "Завершено задач: N из M".
+   - Если всё готово: предложите архивацию.
+   - Если пауза: объясните причину и ждите указаний.
 
-**Output During Implementation**
-
-```
-## Implementing: <change-name> (schema: <schema-name>)
-
-Working on task 3/7: <task description>
-[...implementation happening...]
-✓ Task complete
-
-Working on task 4/7: <task description>
-[...implementation happening...]
-✓ Task complete
-```
-
-**Output On Completion**
+**Вывод во время реализации**
 
 ```
-## Implementation Complete
+## Реализация: <change-name> (схема: <schema-name>)
 
-**Change:** <change-name>
-**Schema:** <schema-name>
-**Progress:** 7/7 tasks complete ✓
+Работа над задачей 3/7: <описание задачи>
+[...процесс реализации...]
+✓ Задача выполнена
 
-### Completed This Session
-- [x] Task 1
-- [x] Task 2
+Работа над задачей 4/7: <описание задачи>
+[...процесс реализации...]
+✓ Задача выполнена
+```
+
+**Вывод при завершении**
+
+```
+## Реализация завершена
+
+**Изменение:** <change-name>
+**Схема:** <schema-name>
+**Прогресс:** Выполнено задач: 7/7 ✓
+
+### Выполнено за эту сессию
+- [x] Задача 1
+- [x] Задача 2
 ...
 
-All tasks complete! You can archive this change with `/opsx:archive`.
+Все задачи выполнены! Вы можете архивировать это изменение с помощью `/opsx:archive`.
 ```
 
-**Output On Pause (Issue Encountered)**
+**Вывод при паузе (возникла проблема)**
 
 ```
-## Implementation Paused
+## Реализация приостановлена
 
-**Change:** <change-name>
-**Schema:** <schema-name>
-**Progress:** 4/7 tasks complete
+**Изменение:** <change-name>
+**Схема:** <schema-name>
+**Прогресс:** Выполнено задач: 4/7
 
-### Issue Encountered
-<description of the issue>
+### Возникшая проблема
+<описание проблемы>
 
-**Options:**
-1. <option 1>
-2. <option 2>
-3. Other approach
+**Варианты:**
+1. <вариант 1>
+2. <вариант 2>
+3. Другой подход
 
-What would you like to do?
+Что бы вы хотели сделать?
 ```
 
-**Guardrails**
-- Keep going through tasks until done or blocked
-- Always read context files before starting (from the apply instructions output)
-- If task is ambiguous, pause and ask before implementing
-- If implementation reveals issues, pause and suggest artifact updates
-- Keep code changes minimal and scoped to each task
-- Update task checkbox immediately after completing each task
-- Pause on errors, blockers, or unclear requirements - don't guess
-- Use contextFiles from CLI output, don't assume specific file names
+**Ограничения (Guardrails)**
 
-**Fluid Workflow Integration**
+- Продолжайте выполнять задачи до завершения или блокировки.
+- Всегда читайте файлы контекста перед началом (из вывода инструкций по применению).
+- Если задача неоднозначна, сделайте паузу и уточните перед реализацией.
+- Если реализация выявляет проблемы, сделайте паузу и предложите обновление артефактов.
+- Держите изменения кода минимальными и в рамках каждой задачи.
+- Обновляйте чекбокс задачи сразу после её выполнения.
+- Делайте паузу при ошибках, блокировках или неясных требованиях — не гадайте.
+- Используйте `contextFiles` из вывода CLI, не предполагайте конкретные имена файлов.
 
-This skill supports the "actions on a change" model:
+**Интеграция в гибкий рабочий процесс**
 
-- **Can be invoked anytime**: Before all artifacts are done (if tasks exist), after partial implementation, interleaved with other actions
-- **Allows artifact updates**: If implementation reveals design issues, suggest updating artifacts - not phase-locked, work fluidly
+Этот навык поддерживает модель "действий над изменением":
+
+- **Может быть вызван в любое время**: до готовности всех артефактов (если задачи существуют), после частичной реализации, вперемешку с другими действиями.
+- **Позволяет обновлять артефакты**: если реализация выявляет проблемы проектирования, предложите обновить артефакты — работа не жестко привязана к фазам, действуйте гибко.

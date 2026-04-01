@@ -1,103 +1,104 @@
-# OPSX: Propose
+# OPSX: Предложить (Propose)
 
-Propose a new change - create it and generate all artifacts in one step
+Предложить новое изменение — создать его и сгенерировать все артефакты за один шаг
 
-Propose a new change - create the change and generate all artifacts in one step.
+Предложить новое изменение — создать изменение и сгенерировать все артефакты за один шаг.
 
-I'll create a change with artifacts:
-- proposal.md (what & why)
-- design.md (how)
-- tasks.md (implementation steps)
+Я создам изменение с артефактами:
+- proposal.md (что и зачем)
+- design.md (как)
+- tasks.md (шаги реализации)
 
-When ready to implement, run /opsx:apply
+Когда будете готовы к реализации, выполните /opsx:apply
 
 ---
 
-**Input**: The argument after `/opsx:propose` is the change name (kebab-case), OR a description of what the user wants to build.
+**Ввод**: Аргумент после `/opsx:propose` — это имя изменения (в формате kebab-case) ИЛИ описание того, что пользователь хочет создать.
 
-**Steps**
+**Шаги**
 
-1. **If no input provided, ask what they want to build**
+1. **Если ввод не предоставлен, спросите, что нужно создать**
 
-   Use the **AskUserQuestion tool** (open-ended, no preset options) to ask:
-   > "What change do you want to work on? Describe what you want to build or fix."
+   Используйте инструмент **AskUserQuestion** (открытый вопрос, без предустановленных вариантов), чтобы спросить:
+   > "Над каким изменением вы хотите поработать? Опишите, что вы хотите создать или исправить."
 
-   From their description, derive a kebab-case name (e.g., "add user authentication" → `add-user-auth`).
+   На основе описания сформируйте имя в формате kebab-case (например, "add user authentication" → `add-user-auth`).
 
-   **IMPORTANT**: Do NOT proceed without understanding what the user wants to build.
+   **ВАЖНО**: НЕ продолжайте без понимания того, что пользователь хочет создать.
 
-2. **Create the change directory**
+2. **Создание директории изменения**
    ```bash
    openspec new change "<name>"
    ```
-   This creates a scaffolded change at `openspec/changes/<name>/` with `.openspec.yaml`.
+   Это создаст структуру изменения в `openspec/changes/<name>/` с файлом `.openspec.yaml`.
 
-3. **Get the artifact build order**
+3. **Получение порядка создания артефактов**
    ```bash
    openspec status --change "<name>" --json
    ```
-   Parse the JSON to get:
-   - `applyRequires`: array of artifact IDs needed before implementation (e.g., `["tasks"]`)
-   - `artifacts`: list of all artifacts with their status and dependencies
+   Разберите JSON, чтобы получить:
+   - `applyRequires`: массив ID артефактов, необходимых перед реализацией (например, `["tasks"]`).
+   - `artifacts`: список всех артефактов с их статусом и зависимостями.
 
-4. **Create artifacts in sequence until apply-ready**
+4. **Последовательное создание артефактов до готовности к применению**
 
-   Use the **TodoWrite tool** to track progress through the artifacts.
+   Используйте инструмент **TodoWrite** для отслеживания прогресса по артефактам.
 
-   Loop through artifacts in dependency order (artifacts with no pending dependencies first):
+   Проходите по артефактам в порядке их зависимостей (сначала артефакты без ожидающих зависимостей):
 
-   a. **For each artifact that is `ready` (dependencies satisfied)**:
-      - Get instructions:
+   a. **Для каждого артефакта в статусе `ready` (зависимости удовлетворены)**:
+      - Получите инструкции:
         ```bash
         openspec instructions <artifact-id> --change "<name>" --json
         ```
-      - The instructions JSON includes:
-        - `context`: Project background (constraints for you - do NOT include in output)
-        - `rules`: Artifact-specific rules (constraints for you - do NOT include in output)
-        - `template`: The structure to use for your output file
-        - `instruction`: Schema-specific guidance for this artifact type
-        - `outputPath`: Where to write the artifact
-        - `dependencies`: Completed artifacts to read for context
-      - Read any completed dependency files for context
-      - Create the artifact file using `template` as the structure
-      - Apply `context` and `rules` as constraints - but do NOT copy them into the file
-      - Show brief progress: "Created <artifact-id>"
+      - JSON инструкций включает:
+        - `context`: Контекст проекта (ограничения для вас — НЕ включайте в вывод).
+        - `rules`: Правила для конкретного артефакта (ограничения для вас — НЕ включайте в вывод).
+        - `template`: Структура, которую нужно использовать для выходного файла.
+        - `instruction`: Руководство по конкретной схеме для этого типа артефакта.
+        - `outputPath`: Куда записать артефакт.
+        - `dependencies`: Завершенные артефакты, которые нужно прочитать для контекста.
+      - Прочитайте все завершенные файлы зависимостей для контекста.
+      - Создайте файл артефакта, используя `template` как структуру.
+      - Применяйте `context` и `rules` как ограничения — но НЕ копируйте их в файл.
+      - Показывайте краткий прогресс: "Создан <artifact-id>".
 
-   b. **Continue until all `applyRequires` artifacts are complete**
-      - After creating each artifact, re-run `openspec status --change "<name>" --json`
-      - Check if every artifact ID in `applyRequires` has `status: "done"` in the artifacts array
-      - Stop when all `applyRequires` artifacts are done
+   b. **Продолжайте, пока все артефакты из `applyRequires` не будут завершены**
+      - После создания каждого артефакта повторно запускайте `openspec status --change "<name>" --json`.
+      - Проверяйте, имеет ли каждый ID артефакта из `applyRequires` статус `status: "done"` в массиве артефактов.
+      - Остановитесь, когда все артефакты из `applyRequires` будут готовы.
 
-   c. **If an artifact requires user input** (unclear context):
-      - Use **AskUserQuestion tool** to clarify
-      - Then continue with creation
+   c. **Если артефакт требует ввода пользователя** (неясный контекст):
+      - Используйте инструмент **AskUserQuestion** для уточнения.
+      - Затем продолжайте создание.
 
-5. **Show final status**
+5. **Отображение финального статуса**
    ```bash
    openspec status --change "<name>"
    ```
 
-**Output**
+**Вывод**
 
-After completing all artifacts, summarize:
-- Change name and location
-- List of artifacts created with brief descriptions
-- What's ready: "All artifacts created! Ready for implementation."
-- Prompt: "Run `/opsx:apply` to start implementing."
+После завершения всех артефактов подведите итог:
+- Имя изменения и его местоположение.
+- Список созданных артефактов с краткими описаниями.
+- Готовность: "Все артефакты созданы! Готово к реализации."
+- Подсказка: "Выполните `/opsx:apply`, чтобы начать реализацию."
 
-**Artifact Creation Guidelines**
+**Рекомендации по созданию артефактов**
 
-- Follow the `instruction` field from `openspec instructions` for each artifact type
-- The schema defines what each artifact should contain - follow it
-- Read dependency artifacts for context before creating new ones
-- Use `template` as the structure for your output file - fill in its sections
-- **IMPORTANT**: `context` and `rules` are constraints for YOU, not content for the file
-  - Do NOT copy `<context>`, `<rules>`, `<project_context>` blocks into the artifact
-  - These guide what you write, but should never appear in the output
+- Следуйте полю `instruction` из `openspec instructions` для каждого типа артефакта.
+- Схема определяет, что должен содержать каждый артефакт — следуйте ей.
+- Читайте артефакты зависимостей для контекста перед созданием новых.
+- Используйте `template` как структуру для выходного файла — заполняйте его разделы.
+- **ВАЖНО**: `context` и `rules` — это ограничения для ВАС, а не контент для файла.
+  - НЕ копируйте блоки `<context>`, `<rules>`, `<project_context>` в артефакт.
+  - Они направляют то, что вы пишете, но никогда не должны появляться в выводе.
 
-**Guardrails**
-- Create ALL artifacts needed for implementation (as defined by schema's `apply.requires`)
-- Always read dependency artifacts before creating a new one
-- If context is critically unclear, ask the user - but prefer making reasonable decisions to keep momentum
-- If a change with that name already exists, ask if user wants to continue it or create a new one
-- Verify each artifact file exists after writing before proceeding to next
+**Ограничения (Guardrails)**
+
+- Создайте ВСЕ артефакты, необходимые для реализации (как определено в `apply.requires` схемы).
+- Всегда читайте артефакты зависимостей перед созданием нового.
+- Если контекст критически неясен, спросите пользователя — но предпочитайте принимать разумные решения, чтобы сохранить темп.
+- Если изменение с таким именем уже существует, спросите, хочет ли пользователь продолжить его или создать новое.
+- Проверяйте существование каждого файла артефакта после записи перед переходом к следующему.
