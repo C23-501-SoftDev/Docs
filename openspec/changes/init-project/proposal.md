@@ -8,7 +8,7 @@
 - **Настройка Web MVC:** Конфигурация DispatcherServlet, контроллеров и статических ресурсов. Реализация базовой Index Page.
 - **Инфраструктура БД:** Настройка PostgreSQL 18, пула соединений и инструмента миграции (Liquibase/Flyway).
 - **Документация:** Интеграция OpenAPI/Swagger.
-- **Безопасность (RBAC):** Настройка Spring Security, создание таблиц `users`, `roles`, `user_roles` и инициализация дефолтного администратора.
+- **Безопасность (RBAC):** Настройка Spring Security, создание таблиц `users`, `roles`, `user_roles` и инициализация ролей `ADMIN`, `EDITOR`, `READER` с дефолтным администратором.
 - **Окружение:** Настройка профилей (dev, test, prod) и логирования (Logback/SLF4J).
 
 ## Capabilities
@@ -16,7 +16,7 @@
 ### New Capabilities
 - `project-foundation`: Базовая структура проекта, конфигурация сборки и профилей окружения.
 - `database-infrastructure`: Настройка подключения к PostgreSQL и системы миграций.
-- `security-rbac-base`: Базовая конфигурация Spring Security и ролевая модель (таблицы и seed-данные).
+- `security-rbac-base`: Базовая конфигурация Spring Security и ролевая модель (таблицы и seed-данные: ADMIN, EDITOR, READER).
 - `api-documentation`: Настройка Swagger UI для документирования эндпоинтов.
 
 ### Modified Capabilities
