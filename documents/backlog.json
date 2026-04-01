@@ -6,11 +6,7 @@
     "title": "Администрирование и Безопасность (Admin & Security)",
     "description": "Управление доступом, пользователями и системными настройками. Без пользователей и пространств невозможно создавать документы.",
     "metadata": {
-      "tags": [
-        "Admin",
-        "Security",
-        "Infrastructure"
-      ],
+      "tags": [],
       "requirements_check": [
         {
           "document": "base-requirements.md",
@@ -29,8 +25,7 @@
         "description": "Регистрация, авторизация и роли (Admin, Editor, Reader).",
         "metadata": {
           "tags": [
-            "Auth",
-            "RBAC"
+            "MVP"
           ],
           "requirements_check": [
             {
@@ -52,8 +47,7 @@
             "so_that": "обеспечить фундамент для разработки и работы системы.",
             "metadata": {
               "tags": [
-                "DevOps",
-                "Backend"
+                "MVP"
               ],
               "requirements_check": [
                 {
@@ -81,8 +75,7 @@
             "so_that": "получить доступ к своим данным и функциям согласно роли.",
             "metadata": {
               "tags": [
-                "Backend",
-                "Security"
+                "MVP"
               ],
               "requirements_check": [
                 {
@@ -110,8 +103,7 @@
             "so_that": "контролировать действия пользователей в системе.",
             "metadata": {
               "tags": [
-                "Backend",
-                "Security"
+                "MVP"
               ],
               "requirements_check": [
                 {
@@ -133,8 +125,7 @@
             "so_that": "оперативно добавлять или блокировать участников системы.",
             "metadata": {
               "tags": [
-                "UI",
-                "Admin"
+                "MVP"
               ],
               "requirements_check": [
                 {
@@ -157,8 +148,6 @@
             "so_that": "проводить аудит безопасности и диагностировать ошибки.",
             "metadata": {
               "tags": [
-                "Backend",
-                "Audit"
               ],
               "requirements_check": [
                 {
@@ -180,7 +169,7 @@
         "description": "Создание Пространств и настройка прав доступа.",
         "metadata": {
           "tags": [
-            "Spaces"
+            "MVP"
           ],
           "requirements_check": [
             {
@@ -202,8 +191,7 @@
             "so_that": "логически структурировать базу знаний организации.",
             "metadata": {
               "tags": [
-                "Backend",
-                "API"
+                "MVP"
               ],
               "requirements_check": [
                 {
@@ -225,8 +213,7 @@
             "so_that": "обеспечить изоляцию данных между отделами или проектами.",
             "metadata": {
               "tags": [
-                "Backend",
-                "Security"
+                "MVP"
               ],
               "requirements_check": [
                 {
@@ -247,10 +234,7 @@
         "title": "Системные уведомления",
         "description": "Рассылка Email об изменениях в системе.",
         "metadata": {
-          "tags": [
-            "Notifications",
-            "Email"
-          ],
+          "tags": [],
           "requirements_check": [
             {
               "document": "base-requirements.md",
@@ -269,10 +253,7 @@
             "i_want": "получать уведомления на почту о важных изменениях",
             "so_that": "быть в курсе обновлений документации без постоянного мониторинга системы.",
             "metadata": {
-              "tags": [
-                "Backend",
-                "Feature"
-              ],
+              "tags": [],
               "requirements_check": [
                 {
                   "document": "base-requirements.md",
@@ -292,10 +273,7 @@
         "title": "Производительность системы",
         "description": "Оптимизация времени отклика и работы под нагрузкой.",
         "metadata": {
-          "tags": [
-            "Performance",
-            "NFR"
-          ],
+          "tags": [],
           "requirements_check": [
             {
               "document": "base-requirements.md",
@@ -314,10 +292,7 @@
             "i_want": "чтобы страницы открывались быстро (до 2 секунд)",
             "so_that": "комфортно работать с документацией без задержек.",
             "metadata": {
-              "tags": [
-                "Backend",
-                "Performance"
-              ],
+              "tags": [],
               "requirements_check": [
                 {
                   "document": "base-requirements.md",
@@ -340,10 +315,7 @@
     "title": "Управление контентом (Content Management)",
     "description": "Основной функционал по работе с документами, шаблонами и вложениями.",
     "metadata": {
-      "tags": [
-        "Core",
-        "Content"
-      ],
+      "tags": [],
       "requirements_check": [
         {
           "document": "base-requirements.md",
@@ -362,8 +334,7 @@
         "description": "Создание и редактирование документов с поддержкой Wiki-разметки и автонумерации.",
         "metadata": {
           "tags": [
-            "UI",
-            "Editor"
+            "MVP"
           ],
           "requirements_check": [
             {
@@ -390,8 +361,6 @@
             "so_that": "сразу видеть результат форматирования текста.",
             "metadata": {
               "tags": [
-                "Frontend",
-                "Markdown"
               ],
               "requirements_check": [
                 {
@@ -413,8 +382,7 @@
             "so_that": "управлять базой знаний в рамках конкретных пространств.",
             "metadata": {
               "tags": [
-                "Backend",
-                "API"
+                "MVP"
               ],
               "requirements_check": [
                 {
@@ -437,8 +405,6 @@
             "so_that": "избежать повреждения данных и ошибок в БД.",
             "metadata": {
               "tags": [
-                "Backend",
-                "Validation"
               ],
               "requirements_check": [
                 {
@@ -459,9 +425,7 @@
         "title": "Шаблоны документов",
         "description": "Наборы шаблонов для различных ролей (Разработчик, Аналитик, Администратор).",
         "metadata": {
-          "tags": [
-            "Templates"
-          ],
+          "tags": [],
           "requirements_check": [
             {
               "document": "base-requirements.md",
@@ -480,10 +444,7 @@
             "i_want": "выбирать шаблоны документов, соответствующие моей роли",
             "so_that": "быстрее создавать документы по установленным стандартам.",
             "metadata": {
-              "tags": [
-                "Backend",
-                "Logic"
-              ],
+              "tags": [],
               "requirements_check": [
                 {
                   "document": "base-requirements.md",
@@ -503,10 +464,7 @@
             "i_want": "чтобы требования в шаблонах нумеровались автоматически",
             "so_that": "не тратить время на ручную поддержку уникальных идентификаторов.",
             "metadata": {
-              "tags": [
-                "Backend",
-                "Feature"
-              ],
+              "tags": [],
               "requirements_check": [
                 {
                   "document": "base-requirements.md",
@@ -526,10 +484,7 @@
         "title": "Вложения",
         "description": "Загрузка и управление прикрепленными файлами.",
         "metadata": {
-          "tags": [
-            "Files",
-            "Attachments"
-          ],
+          "tags": [],
           "requirements_check": [
             {
               "document": "base-requirements.md",
@@ -548,11 +503,7 @@
             "i_want": "загружать файлы через drag-and-drop и прикреплять их к документам",
             "so_that": "дополнять текстовую информацию необходимыми медиа-файлами и архивами.",
             "metadata": {
-              "tags": [
-                "Backend",
-                "SMB",
-                "UI"
-              ],
+              "tags": [],
               "requirements_check": [
                 {
                   "document": "base-requirements.md",
@@ -583,8 +534,7 @@
     "description": "Инструменты для быстрого нахождения информации.",
     "metadata": {
       "tags": [
-        "UI",
-        "Search"
+        "MVP"
       ],
       "requirements_check": [
         {
@@ -604,7 +554,7 @@
         "description": "Поиск по названию, дате и пагинация результатов.",
         "metadata": {
           "tags": [
-            "Search"
+            "MVP"
           ],
           "requirements_check": [
             {
@@ -625,8 +575,7 @@
             "so_that": "быстро находить нужную информацию, не нарушая конфиденциальность.",
             "metadata": {
               "tags": [
-                "Backend",
-                "Search"
+                "MVP"
               ],
               "requirements_check": [
                 {
@@ -649,8 +598,7 @@
             "so_that": "сузить область поиска до актуальных документов.",
             "metadata": {
               "tags": [
-                "Backend",
-                "UI"
+                "MVP"
               ],
               "requirements_check": [
                 {
@@ -672,8 +620,7 @@
             "so_that": "удобно просматривать большое количество найденных документов.",
             "metadata": {
               "tags": [
-                "UI",
-                "API"
+                "MVP"
               ],
               "requirements_check": [
                 {
@@ -695,8 +642,7 @@
         "description": "Иерархическое дерево документов и навигация по Пространствам.",
         "metadata": {
           "tags": [
-            "Navigation",
-            "UI"
+            "MVP"
           ],
           "requirements_check": [
             {
@@ -717,8 +663,7 @@
             "so_that": "понимать контекст и быстро переключаться между разделами базы знаний.",
             "metadata": {
               "tags": [
-                "UI",
-                "Frontend"
+                "MVP"
               ],
               "requirements_check": [
                 {
@@ -742,10 +687,7 @@
     "title": "Жизненный цикл и Версионность (Lifecycle & Versioning)",
     "description": "Управление статусами документов и историей их изменений через Git.",
     "metadata": {
-      "tags": [
-        "Git",
-        "Versioning"
-      ],
+      "tags": [],
       "requirements_check": [
         {
           "document": "base-requirements.md",
@@ -763,9 +705,7 @@
         "title": "Workflow документа",
         "description": "Управление жизненным циклом: Draft, Published, Deleted.",
         "metadata": {
-          "tags": [
-            "Workflow"
-          ],
+          "tags": [],
           "requirements_check": [
             {
               "document": "base-requirements.md",
@@ -784,9 +724,7 @@
             "i_want": "переключать документ между статусами Draft и Published",
             "so_that": "скрывать незавершенную работу от читателей до момента готовности.",
             "metadata": {
-              "tags": [
-                "Backend"
-              ],
+              "tags": [],
               "requirements_check": [
                 {
                   "document": "base-requirements.md",
@@ -807,10 +745,7 @@
             "i_want": "иметь возможность восстановить случайно удаленный документ",
             "so_that": "избежать безвозвратной потери данных при ошибке.",
             "metadata": {
-              "tags": [
-                "Backend",
-                "API"
-              ],
+              "tags": [],
               "requirements_check": [
                 {
                   "document": "base-requirements.md",
@@ -830,10 +765,7 @@
             "i_want": "полностью удалять данные из БД и файловой системы",
             "so_that": "соблюдать политики очистки данных и освобождать место.",
             "metadata": {
-              "tags": [
-                "Backend",
-                "Admin"
-              ],
+              "tags": [],
               "requirements_check": [
                 {
                   "document": "base-requirements.md",
@@ -854,8 +786,7 @@
         "description": "Интеграция с Git для хранения истории и сравнения версий.",
         "metadata": {
           "tags": [
-            "Git",
-            "Diff"
+            "MVP"
           ],
           "requirements_check": [
             {
@@ -882,8 +813,7 @@
             "so_that": "обеспечить надежное хранение истории изменений.",
             "metadata": {
               "tags": [
-                "Backend",
-                "Git"
+                "MVP"
               ],
               "requirements_check": [
                 {
@@ -911,8 +841,7 @@
             "so_that": "отслеживать эволюцию документа во времени.",
             "metadata": {
               "tags": [
-                "UI",
-                "API"
+                "MVP"
               ],
               "requirements_check": [
                 {
@@ -940,8 +869,6 @@
             "so_that": "быстро понимать, что именно изменилось между ревизиями.",
             "metadata": {
               "tags": [
-                "UI",
-                "Frontend"
               ],
               "requirements_check": [
                 {
@@ -963,8 +890,6 @@
             "so_that": "вернуть документ к рабочему состоянию в случае неудачных правок.",
             "metadata": {
               "tags": [
-                "Backend",
-                "Logic"
               ],
               "requirements_check": [
                 {
@@ -988,9 +913,7 @@
     "title": "Экспорт и Отчетность (Export)",
     "description": "Выгрузка данных из системы в различных форматах.",
     "metadata": {
-      "tags": [
-        "Export"
-      ],
+      "tags": [],
       "requirements_check": [
         {
           "document": "base-requirements.md",
@@ -1007,11 +930,7 @@
         "title": "Экспорт документов",
         "description": "Выгрузка в PDF, DOCX, HTML с сохранением структуры.",
         "metadata": {
-          "tags": [
-            "Export",
-            "PDF",
-            "DOCX"
-          ],
+          "tags": [],
           "requirements_check": [
             {
               "document": "base-requirements.md",
@@ -1030,10 +949,7 @@
             "i_want": "корректно преобразовывать Wiki-разметку в HTML",
             "so_that": "документы выглядели профессионально при экспорте.",
             "metadata": {
-              "tags": [
-                "Backend",
-                "Markdown"
-              ],
+              "tags": [],
               "requirements_check": [
                 {
                   "document": "base-requirements.md",
@@ -1053,10 +969,7 @@
             "i_want": "экспортировать документы в формат PDF",
             "so_that": "делиться ими в неизменяемом виде, удобном для печати.",
             "metadata": {
-              "tags": [
-                "Backend",
-                "Library"
-              ],
+              "tags": [],
               "requirements_check": [
                 {
                   "document": "base-requirements.md",
@@ -1076,10 +989,7 @@
             "i_want": "экспортировать документы в формат DOCX",
             "so_that": "продолжать работу над ними в офисных приложениях.",
             "metadata": {
-              "tags": [
-                "Backend",
-                "Library"
-              ],
+              "tags": [],
               "requirements_check": [
                 {
                   "document": "base-requirements.md",
@@ -1099,10 +1009,7 @@
             "i_want": "выбирать формат экспорта через удобный интерфейс",
             "so_that": "быстро получать файл в нужном расширении.",
             "metadata": {
-              "tags": [
-                "UI",
-                "Frontend"
-              ],
+              "tags": [],
               "requirements_check": [
                 {
                   "document": "base-requirements.md",
