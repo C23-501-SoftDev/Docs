@@ -99,6 +99,16 @@
         margin-right: 5px;
         font-size: 0.85em;
       }
+      .priority-badge {
+        display: inline-block;
+        padding: 1px 6px;
+        border-radius: 10px;
+        font-size: 0.75em;
+        font-weight: bold;
+        background-color: #f39c12;
+        color: white;
+        margin-right: 8px;
+      }
       .title {
         font-weight: 600;
         font-size: 1em;
@@ -371,6 +381,10 @@
             ? `<div class="tags">${node.metadata.tags.map((t) => `<span class="tag">${t}</span>`).join("")}</div>`
             : "";
 
+        const priorityHtml = node.priority
+            ? `<span class="priority-badge" title="Приоритет">P${node.priority}</span>`
+            : "";
+
         const reqs =
           node.metadata && node.metadata.requirements_check
             ? node.metadata.requirements_check
@@ -390,6 +404,7 @@
                     <span class="type-badge ${node.type}">${node.type}</span>
                     <span class="id">${node.id}</span>
                     <span class="title">${node.title}</span>
+                    ${priorityHtml}
                     ${reqBtnHtml}
                     ${detailsBtnHtml}
                     ${tagsHtml}
