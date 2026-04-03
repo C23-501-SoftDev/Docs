@@ -34,10 +34,14 @@
 - Принимает AJAX-запросы от фронтенда, возвращает JSON или статусы HTTP.
 - Взаимодействует с бизнес-логикой.
 
-#### 1.2.4. Бизнес-логика
+#### 1.2.4. Чистая архитектура (Clean Architecture)
 
-- Сервисы: `DocumentService`, `SpaceService`, `UserService` и т.д.
-- Содержит основные алгоритмы: создание/редактирование страниц, управление пространствами, права доступа, индексацию для поиска.
+Архитектура построена по принципу Clean Architecture (или аналогичному), с явным разделением на слои:
+
+- **Domain (ядро):** Сущности (`Document`, `Space`, `User`), интерфейсы репозиториев (`DocumentRepository`, `SpaceRepository`). Не зависит от Spring и фреймворков.
+- **Use Cases:** Сценарии использования (`CreateDocumentUseCase`, `UpdateDocumentUseCase`, `GetDocumentHistoryUseCase`). Содержат бизнес-логику, работают через интерфейсы репозиториев.
+- **Interface (адаптеры):** REST Controllers, Presenters. Преобразуют запросы/ответы между внешним миром и Use Cases.
+- **Infrastructure:** Реализации репозиториев (Spring Data JPA, JGit), отправка email, конфигурации.
 
 #### 1.2.5. JGit (Git операции)
 
