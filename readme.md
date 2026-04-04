@@ -175,6 +175,9 @@ CREATE DATABASE knowledge_base
 ```
 А потом ещё один в окне Query Tools созданной БД
 ```sql
+-- =====================================================
+-- 1. Таблица пользователей
+-- =====================================================
 CREATE TABLE users (
     id              BIGSERIAL PRIMARY KEY,
     login           VARCHAR(100) NOT NULL UNIQUE,
@@ -188,7 +191,9 @@ CREATE TABLE users (
 COMMENT ON TABLE users IS 'Зарегистрированные пользователи системы';
 COMMENT ON COLUMN users.role IS 'Глобальная роль: Admin, Editor, Reader';
 
-
+-- =====================================================
+-- 2. Таблица пространств
+-- =====================================================
 CREATE TABLE spaces (
     id              BIGSERIAL PRIMARY KEY,
     name            VARCHAR(200) NOT NULL UNIQUE,
@@ -201,7 +206,9 @@ CREATE TABLE spaces (
 COMMENT ON TABLE spaces IS 'Логические группировки документов с едиными правами доступа';
 COMMENT ON COLUMN spaces.owner_id IS 'Ответственный редактор (пользователь с ролью Editor или Admin)';
 
-
+-- =====================================================
+-- 3. Таблица прав доступа к пространствам
+-- =====================================================
 CREATE TABLE space_permissions (
     id              BIGSERIAL PRIMARY KEY,
     space_id        BIGINT NOT NULL REFERENCES spaces(id) ON DELETE CASCADE,
@@ -215,7 +222,27 @@ CREATE TABLE space_permissions (
 COMMENT ON TABLE space_permissions IS 'Права доступа пользователей к конкретным пространствам';
 COMMENT ON COLUMN space_permissions.permission_type IS 'READ - чтение, WRITE - создание/редактирование, OWNER - полный контроль';
 
+-- =====================================================
+-- 4. Таблица шаблонов документов
+-- =====================================================
+CREATE TABLE templates (
+    id              BIGSERIAL PRIMARY KEY,
+    name            VARCHAR(200) NOT NULL UNIQUE,
+    description     TEXT,
+    content         TEXT NOT NULL,
+    role            VARCHAR(20) NOT NULL CHECK (role IN ('Admin', 'Editor', 'Reader', 'Developer', 'Analyst')),
+    is_system       BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
+COMMENT ON TABLE templates IS 'Предустановленные шаблоны документов для разных ролей';
+COMMENT ON COLUMN templates.role IS 'Роль, для которой доступен шаблон';
+COMMENT ON COLUMN templates.is_system IS 'Системные шаблоны нельзя изменять (MVP)';
+
+-- =====================================================
+-- 5. Таблица документов
+-- =====================================================
 CREATE TABLE documents (
     id              BIGSERIAL PRIMARY KEY,
     title           VARCHAR(500) NOT NULL,
@@ -224,6 +251,8 @@ CREATE TABLE documents (
     is_deleted      BOOLEAN NOT NULL DEFAULT FALSE,
     author_id       BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     space_id        BIGINT NOT NULL REFERENCES spaces(id) ON DELETE RESTRICT,
+    template_id     BIGINT NULL REFERENCES templates(id) ON DELETE SET NULL,
+    parent_document_id BIGINT NULL REFERENCES documents(id) ON DELETE CASCADE,
     deleted_at      TIMESTAMP,
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -233,36 +262,45 @@ COMMENT ON TABLE documents IS 'Основные единицы хранения 
 COMMENT ON COLUMN documents.status IS 'Draft - черновик, Published - опубликован, Deleted - в корзине';
 COMMENT ON COLUMN documents.is_deleted IS 'Флаг мягкого удаления';
 COMMENT ON COLUMN documents.deleted_at IS 'Дата мягкого удаления (заполняется автоматически)';
+COMMENT ON COLUMN documents.template_id IS 'Какой шаблон использовался при создании';
+COMMENT ON COLUMN documents.parent_document_id IS 'Для иерархической структуры документов';
 
--- Индексы для фильтрации неудалённых записей
+-- Индексы для документов
 CREATE INDEX idx_documents_space_status ON documents(space_id, status) WHERE is_deleted = FALSE;
 CREATE INDEX idx_documents_not_deleted ON documents(is_deleted) WHERE is_deleted = FALSE;
 CREATE INDEX idx_documents_author ON documents(author_id);
 CREATE INDEX idx_documents_created_at ON documents(created_at);
 CREATE INDEX idx_documents_updated_at ON documents(updated_at);
 
-
+-- =====================================================
+-- 6. Таблица версий документов
+-- =====================================================
 CREATE TABLE versions (
     id              BIGSERIAL PRIMARY KEY,
     document_id     BIGINT NOT NULL REFERENCES documents(id) ON DELETE RESTRICT,
     git_hash        VARCHAR(40) NOT NULL,
     author_id       BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     comment         VARCHAR(500),
+    restored_from_version_id BIGINT NULL REFERENCES versions(id) ON DELETE SET NULL,
     is_deleted      BOOLEAN NOT NULL DEFAULT FALSE,
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 COMMENT ON TABLE versions IS 'История изменений документов (метаданные Git-коммитов)';
 COMMENT ON COLUMN versions.git_hash IS 'SHA-1 хэш коммита в Git-репозитории';
+COMMENT ON COLUMN versions.restored_from_version_id IS 'Если версия создана через откат, указываем ID версии, из которой восстановили';
 
 CREATE INDEX idx_versions_document ON versions(document_id);
 CREATE INDEX idx_versions_git_hash ON versions(git_hash);
 CREATE INDEX idx_versions_author ON versions(author_id);
 
-
+-- =====================================================
+-- 7. Таблица вложений
+-- =====================================================
 CREATE TABLE attachments (
     id              BIGSERIAL PRIMARY KEY,
     document_id     BIGINT NOT NULL REFERENCES documents(id) ON DELETE RESTRICT,
+    version_id      BIGINT NULL REFERENCES versions(id) ON DELETE CASCADE,
     filename        VARCHAR(255) NOT NULL,
     content_type    VARCHAR(100),
     size_bytes      BIGINT NOT NULL,
@@ -274,11 +312,37 @@ CREATE TABLE attachments (
 
 COMMENT ON TABLE attachments IS 'Метаданные файлов, прикреплённых к документам';
 COMMENT ON COLUMN attachments.storage_path IS 'Путь к файлу в blob-хранилище';
+COMMENT ON COLUMN attachments.version_id IS 'К какой версии документа относится вложение (NULL = актуальное)';
 
 CREATE INDEX idx_attachments_document ON attachments(document_id);
+CREATE INDEX idx_attachments_version ON attachments(version_id);
 CREATE INDEX idx_attachments_uploaded_by ON attachments(uploaded_by);
 
+-- =====================================================
+-- 8. Таблица прав доступа на уровне документа
+-- =====================================================
+CREATE TABLE document_permissions (
+    id              BIGSERIAL PRIMARY KEY,
+    document_id     BIGINT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    user_id         BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    permission_type VARCHAR(20) NOT NULL CHECK (permission_type IN ('READ', 'WRITE', 'OWNER')),
+    granted_by      BIGINT NOT NULL REFERENCES users(id) ON DELETE SET NULL,
+    granted_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    UNIQUE(document_id, user_id, permission_type)
+);
 
+COMMENT ON TABLE document_permissions IS 'Дополнительные права на конкретный документ (поверх прав пространства)';
+COMMENT ON COLUMN document_permissions.permission_type IS 'READ, WRITE, OWNER';
+
+CREATE INDEX idx_doc_permissions_document ON document_permissions(document_id);
+CREATE INDEX idx_doc_permissions_user ON document_permissions(user_id);
+
+-- =====================================================
+-- Триггеры и функции
+-- =====================================================
+
+-- Функция для автоматического обновления updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -287,11 +351,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Триггеры для updated_at
 CREATE TRIGGER trigger_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER trigger_spaces_updated_at BEFORE UPDATE ON spaces FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER trigger_documents_updated_at BEFORE UPDATE ON documents FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER trigger_templates_updated_at BEFORE UPDATE ON templates FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-
+-- Функция для автоматического заполнения deleted_at и статуса при soft-delete
 CREATE OR REPLACE FUNCTION set_deleted_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -311,16 +377,14 @@ CREATE TRIGGER trigger_documents_set_deleted_at
     FOR EACH ROW
     EXECUTE FUNCTION set_deleted_at();
 
-
+-- Функция для каскадного мягкого удаления зависимостей
 CREATE OR REPLACE FUNCTION soft_delete_dependencies()
 RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.is_deleted = TRUE AND OLD.is_deleted = FALSE THEN
-        -- Мягкое удаление версий
         UPDATE versions SET is_deleted = TRUE 
         WHERE document_id = NEW.id AND is_deleted = FALSE;
         
-        -- Мягкое удаление вложений
         UPDATE attachments SET is_deleted = TRUE 
         WHERE document_id = NEW.id AND is_deleted = FALSE;
     END IF;
@@ -333,15 +397,13 @@ CREATE TRIGGER trigger_documents_soft_delete_deps
     FOR EACH ROW
     EXECUTE FUNCTION soft_delete_dependencies();
 
-
+-- Функция для физического удаления документа
 CREATE OR REPLACE FUNCTION hard_delete_document(p_document_id BIGINT)
 RETURNS VOID AS $$
 BEGIN
-    -- Физически удаляем версии
     DELETE FROM versions WHERE document_id = p_document_id;
-    -- Физически удаляем вложения
     DELETE FROM attachments WHERE document_id = p_document_id;
-    -- Физически удаляем сам документ
+    DELETE FROM document_permissions WHERE document_id = p_document_id;
     DELETE FROM documents WHERE id = p_document_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
