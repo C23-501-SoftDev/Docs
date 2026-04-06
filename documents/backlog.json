@@ -5,6 +5,7 @@
     "priority": 1,
     "title": "Администрирование и Безопасность (Admin & Security)",
     "description": "Управление доступом, пользователями и системными настройками. Без пользователей и пространств невозможно создавать документы.",
+    "assignees": ["val-5", "avekIT47", "X"],
     "metadata": {
       "tags": [],
       "requirements_check": [
@@ -23,6 +24,7 @@
         "type": "Feature",
         "title": "Управление пользователями (RBAC)",
         "description": "Регистрация, авторизация и роли (Admin, Editor, Reader).",
+        "assignees": ["val-5", "avekIT47"],
         "metadata": {
           "tags": [
             "MVP"
@@ -45,6 +47,7 @@
             "as_a": "DevOps-инженер",
             "i_want": "настроить базовую инфраструктуру (Spring Boot, БД, SMB, Git)",
             "so_that": "обеспечить фундамент для разработки и работы системы.",
+            "assignees": "val-5",
             "metadata": {
               "tags": [
                 "MVP"
@@ -73,6 +76,7 @@
             "as_a": "Пользователь",
             "i_want": "безопасно входить в систему с использованием JWT",
             "so_that": "получить доступ к своим данным и функциям согласно роли.",
+            "assignees": "val-5",
             "metadata": {
               "tags": ["MVP"],
               "requirements_check": [
@@ -100,6 +104,7 @@
             "as_a": "Администратор",
             "i_want": "разграничивать права доступа через роли Admin, Editor, Reader",
             "so_that": "контролировать действия пользователей в системе.",
+            "assignees": "val-5",
             "metadata": {
               "tags": [
                 "MVP"
@@ -122,6 +127,7 @@
             "as_a": "Администратор",
             "i_want": "управлять списком пользователей через графический интерфейс",
             "so_that": "оперативно добавлять или блокировать участников системы.",
+            "assignees": "val-5",
             "metadata": {
               "tags": [
                 "MVP"
@@ -145,6 +151,7 @@
             "as_a": "Администратор",
             "i_want": "видеть журнал действий пользователей и системных событий",
             "so_that": "проводить аудит безопасности и диагностировать ошибки.",
+            "assignees": "avekIT47",
             "metadata": {
               "tags": [
               ],
@@ -166,6 +173,7 @@
         "type": "Feature",
         "title": "Управление Пространствами",
         "description": "Создание Пространств и настройка прав доступа.",
+        "assignees": ["avekIT47"],
         "metadata": {
           "tags": [
             "MVP"
@@ -188,6 +196,7 @@
             "as_a": "Администратор",
             "i_want": "создавать и редактировать рабочие пространства (Spaces)",
             "so_that": "логически структурировать базу знаний организации.",
+            "assignees": "avekIT47",
             "metadata": {
               "tags": [
                 "MVP"
@@ -210,6 +219,7 @@
             "as_a": "Администратор",
             "i_want": "назначать права Read/Write на конкретные пространства для групп пользователей",
             "so_that": "обеспечить изоляцию данных между отделами или проектами.",
+            "assignees": "avekIT47",
             "metadata": {
               "tags": [
                 "MVP"
@@ -232,6 +242,7 @@
         "type": "Feature",
         "title": "Системные уведомления",
         "description": "Рассылка Email об изменениях в системе.",
+        "assignees": ["avekIT47"],
         "metadata": {
           "tags": [],
           "requirements_check": [
@@ -251,6 +262,7 @@
             "as_a": "Пользователь",
             "i_want": "получать уведомления на почту о важных изменениях",
             "so_that": "быть в курсе обновлений документации без постоянного мониторинга системы, а система при этом не тормозила.",
+            "assignees": "avekIT47",
             "metadata": {
               "tags": ["Backend"],
               "requirements_check": [
@@ -278,6 +290,7 @@
         "type": "Feature",
         "title": "Производительность системы",
         "description": "Оптимизация времени отклика и работы под нагрузкой.",
+        "assignees": ["X"],
         "metadata": {
           "tags": [],
           "requirements_check": [
@@ -297,6 +310,7 @@
             "as_a": "Пользователь",
             "i_want": "чтобы страницы открывались быстро (до 2 секунд)",
             "so_that": "комфортно работать с документацией без задержек.",
+            "assignees": "X",
             "metadata": {
               "tags": [],
               "requirements_check": [
@@ -320,6 +334,7 @@
     "priority": 2,
     "title": "Управление контентом (Content Management)",
     "description": "Основной функционал по работе с документами, шаблонами и вложениями.",
+    "assignees": ["chudnik", "polina-dudukova", "uretskayaaol", "Nigmatul"],
     "metadata": {
       "tags": [],
       "requirements_check": [
@@ -338,6 +353,7 @@
         "type": "Feature",
         "title": "Редактор документов",
         "description": "Создание и редактирование документов с поддержкой Wiki-разметки и автонумерации.",
+        "assignees": ["chudnik", "polina-dudukova", "uretskayaaol"],
         "metadata": {
           "tags": [
             "MVP"
@@ -365,6 +381,7 @@
             "as_a": "Редактор документации",
             "i_want": "использовать двухпанельный редактор с поддержкой Markdown и предпросмотром в реальном времени",
             "so_that": "удобно создавать и форматировать документы, сразу видя результат.",
+            "assignees": "chudnik",
             "metadata": {
               "tags": ["Frontend", "MVP"],
               "requirements_check": [
@@ -385,6 +402,7 @@
             "as_a": "Пользователь системы",
             "i_want": "создавать, читать, обновлять и удалять документы с привязкой к Space и автору",
             "so_that": "управлять базой знаний в рамках конкретных пространств.",
+            "assignees": "polina-dudukova",
             "metadata": {
               "tags": [
                 "MVP"
@@ -408,6 +426,7 @@
             "as_a": "Система",
             "i_want": "проверять корректность всех полей документа перед сохранением",
             "so_that": "избежать повреждения данных и ошибок в БД.",
+            "assignees": "polina-dudukova",
             "metadata": {
               "tags": [
               ],
@@ -429,6 +448,7 @@
             "as_a": "Разработчик фронтенда",
             "i_want": "настроить React-приложение с роутингом, API-клиентом (Axios) и автоматической подстановкой JWT из localStorage",
             "so_that": "обеспечить SPA-архитектуру и безопасную авторизованную коммуникацию с бэкендом.",
+            "assignees": "uretskayaaol",
             "metadata": {
               "tags": ["Frontend", "MVP"],
               "requirements_check": [
@@ -450,6 +470,7 @@
         "type": "Feature",
         "title": "Шаблоны документов",
         "description": "Наборы шаблонов для различных ролей (Разработчик, Аналитик, Администратор).",
+        "assignees": ["polina-dudukova", "chudnik"],
         "metadata": {
           "tags": [],
           "requirements_check": [
@@ -469,6 +490,7 @@
             "as_a": "Специалист (Разработчик/Аналитик/Админ)",
             "i_want": "выбирать шаблоны документов, соответствующие моей роли",
             "so_that": "быстрее создавать документы по установленным стандартам.",
+            "assignees": "polina-dudukova",
             "metadata": {
               "tags": [],
               "requirements_check": [
@@ -489,6 +511,7 @@
             "as_a": "Аналитик",
             "i_want": "чтобы требования в шаблонах нумеровались автоматически",
             "so_that": "не тратить время на ручную поддержку уникальных идентификаторов.",
+            "assignees": "chudnik",
             "metadata": {
               "tags": [],
               "requirements_check": [
@@ -509,6 +532,7 @@
         "type": "Feature",
         "title": "Вложения",
         "description": "Загрузка и управление прикрепленными файлами.",
+        "assignees": ["chudnik"],
         "metadata": {
           "tags": [],
           "requirements_check": [
@@ -528,6 +552,7 @@
             "as_a": "Пользователь",
             "i_want": "загружать файлы через drag-and-drop и прикреплять их к документам",
             "so_that": "дополнять текстовую информацию необходимыми медиа-файлами и архивами.",
+            "assignees": "chudnik",
             "metadata": {
               "tags": [],
               "requirements_check": [
@@ -555,6 +580,7 @@
         "type": "Feature",
         "title": "Blob-хранилище для файловых вложений",
         "description": "Отдельное хранилище для изображений и бинарных файлов, не входящее в Git-репозиторий.",
+        "assignees": ["Nigmatul"],
         "metadata": {
           "tags": ["Backend"],
           "requirements_check": [
@@ -572,6 +598,7 @@
             "as_a": "Редактор документации",
             "i_want": "загружать изображения и файлы через редактор и автоматически получать ссылки для вставки",
             "so_that": "дополнять документы визуальными материалами и вложениями без раздувания Git-репозитория.",
+            "assignees": "Nigmatul",
             "metadata": {
               "tags": ["Backend"],
               "requirements_check": [
@@ -590,12 +617,13 @@
             "as_a": "Система",
             "i_want": "хранить в БД метаданные о файлах (имя, тип, размер, путь в blob-хранилище)",
             "so_that": "обеспечить быстрый поиск и управление вложениями.",
+            "assignees": "Nigmatul",
             "metadata": {
               "tags": ["Backend"],
               "requirements_check": [
                 {
                   "document": "logic_scheme.md",
-                  "texts": ["Ссылки на blob-объекты хранятся в метадантах PostgreSQL"]
+                  "texts": ["Ссылки на blob-объекты хранятся в метаданных PostgreSQL"]
                 }
               ]
             },
@@ -611,6 +639,7 @@
     "priority": 3,
     "title": "Навигация и Поиск (Navigation & Search)",
     "description": "Инструменты для быстрого нахождения информации.",
+    "assignees": ["chudnik", "polina-dudukova"],
     "metadata": {
       "tags": [
         "MVP"
@@ -631,6 +660,7 @@
         "type": "Feature",
         "title": "Поиск и фильтрация",
         "description": "Поиск по названию, дате и пагинация результатов.",
+        "assignees": ["chudnik", "polina-dudukova"],
         "metadata": {
           "tags": [
             "MVP"
@@ -652,6 +682,7 @@
             "as_a": "Пользователь",
             "i_want": "искать документы по названию с учетом моих прав доступа",
             "so_that": "быстро находить нужную информацию, не нарушая конфиденциальность.",
+            "assignees": "chudnik",
             "metadata": {
               "tags": [
                 "MVP"
@@ -675,6 +706,7 @@
             "as_a": "Пользователь",
             "i_want": "фильтровать результаты поиска по дате создания или изменения",
             "so_that": "сузить область поиска до актуальных документов.",
+            "assignees": "chudnik",
             "metadata": {
               "tags": [
                 "MVP"
@@ -697,6 +729,7 @@
             "as_a": "Пользователь",
             "i_want": "видеть результаты поиска разделенными на страницы",
             "so_that": "удобно просматривать большое количество найденных документов.",
+            "assignees": "polina-dudukova",
             "metadata": {
               "tags": [
                 "MVP"
@@ -719,6 +752,7 @@
         "type": "Feature",
         "title": "Структура и Оглавление",
         "description": "Иерархическое дерево документов и навигация по Пространствам.",
+        "assignees": ["polina-dudukova"],
         "metadata": {
           "tags": [
             "MVP"
@@ -740,6 +774,7 @@
             "as_a": "Пользователь",
             "i_want": "видеть иерархическую структуру пространств и документов в левой панели",
             "so_that": "понимать контекст и быстро переключаться между разделами базы знаний.",
+            "assignees": "polina-dudukova",
             "metadata": {
               "tags": [
                 "MVP"
@@ -759,12 +794,13 @@
       }
     ]
   },
-  {
+    {
     "id": "E2",
     "type": "Epic",
     "priority": 4,
     "title": "Жизненный цикл и Версионность (Lifecycle & Versioning)",
     "description": "Управление статусами документов и историей их изменений через Git.",
+    "assignees": ["g1obyyy", "Nigmatul"],
     "metadata": {
       "tags": [],
       "requirements_check": [
@@ -783,6 +819,7 @@
         "type": "Feature",
         "title": "Workflow документа",
         "description": "Управление жизненным циклом: Draft, Published, Deleted.",
+        "assignees": ["g1obyyy"],
         "metadata": {
           "tags": [],
           "requirements_check": [
@@ -802,6 +839,7 @@
             "as_a": "Редактор",
             "i_want": "переключать документ между статусами Draft и Published",
             "so_that": "скрывать незавершенную работу от читателей до момента готовности.",
+            "assignees": "g1obyyy",
             "metadata": {
               "tags": [],
               "requirements_check": [
@@ -823,6 +861,7 @@
             "as_a": "Пользователь",
             "i_want": "иметь возможность восстановить случайно удаленный документ",
             "so_that": "избежать безвозвратной потери данных при ошибке.",
+            "assignees": "g1obyyy",
             "metadata": {
               "tags": [],
               "requirements_check": [
@@ -843,6 +882,7 @@
             "as_a": "Администратор",
             "i_want": "полностью удалять данные из БД и файловой системы",
             "so_that": "соблюдать политики очистки данных и освобождать место.",
+            "assignees": "g1obyyy",
             "metadata": {
               "tags": [],
               "requirements_check": [
@@ -863,6 +903,7 @@
         "type": "Feature",
         "title": "Контроль версий (Git Integration)",
         "description": "Интеграция с Git для хранения истории и сравнения версий.",
+        "assignees": ["Nigmatul", "g1obyyy"],
         "metadata": {
           "tags": [
             "MVP"
@@ -890,6 +931,7 @@
             "as_a": "Система",
             "i_want": "автоматически создавать Git-коммит при каждом сохранении документа",
             "so_that": "обеспечить надежное хранение истории изменений.",
+            "assignees": "Nigmatul",
             "metadata": {
               "tags": [
                 "MVP"
@@ -918,6 +960,7 @@
             "as_a": "Пользователь",
             "i_want": "видеть список версий документа с указанием даты, автора и комментария",
             "so_that": "отслеживать эволюцию документа во времени.",
+            "assignees": "g1obyyy",
             "metadata": {
               "tags": [
                 "MVP"
@@ -946,9 +989,9 @@
             "as_a": "Редактор",
             "i_want": "сравнивать две версии документа с визуальной подсветкой изменений",
             "so_that": "быстро понимать, что именно изменилось между ревизиями.",
+            "assignees": "Nigmatul",
             "metadata": {
-              "tags": [
-              ],
+              "tags": [],
               "requirements_check": [
                 {
                   "document": "base-requirements.md",
@@ -967,9 +1010,9 @@
             "as_a": "Пользователь",
             "i_want": "создавать новую версию на основе одной из старых",
             "so_that": "вернуть документ к рабочему состоянию в случае неудачных правок.",
+            "assignees": "Nigmatul",
             "metadata": {
-              "tags": [
-              ],
+              "tags": [],
               "requirements_check": [
                 {
                   "document": "base-requirements.md",
@@ -988,6 +1031,7 @@
             "as_a": "Система",
             "i_want": "использовать JGit для выполнения Git-операций (коммиты, история, diff, откат)",
             "so_that": "обеспечить полную версионность документов без использования внешнего Git-клиента.",
+            "assignees": "Nigmatul",
             "metadata": {
               "tags": ["Backend", "MVP"],
               "requirements_check": [
@@ -1013,6 +1057,7 @@
     "priority": 5,
     "title": "Экспорт и Отчетность (Export)",
     "description": "Выгрузка данных из системы в различных форматах.",
+    "assignees": ["X", "g1obyyy"],
     "metadata": {
       "tags": [],
       "requirements_check": [
@@ -1030,6 +1075,7 @@
         "type": "Feature",
         "title": "Экспорт документов",
         "description": "Выгрузка в PDF, DOCX, HTML с сохранением структуры.",
+        "assignees": ["X", "g1obyyy"],
         "metadata": {
           "tags": [],
           "requirements_check": [
@@ -1049,6 +1095,7 @@
             "as_a": "Система",
             "i_want": "корректно преобразовывать Wiki-разметку в HTML",
             "so_that": "документы выглядели профессионально при экспорте.",
+            "assignees": "X",
             "metadata": {
               "tags": [],
               "requirements_check": [
@@ -1069,6 +1116,7 @@
             "as_a": "Пользователь",
             "i_want": "экспортировать документы в формат PDF",
             "so_that": "делиться ими в неизменяемом виде, удобном для печати.",
+            "assignees": "X",
             "metadata": {
               "tags": [],
               "requirements_check": [
@@ -1089,6 +1137,7 @@
             "as_a": "Пользователь",
             "i_want": "экспортировать документы в формат DOCX",
             "so_that": "продолжать работу над ними в офисных приложениях.",
+            "assignees": "X",
             "metadata": {
               "tags": [],
               "requirements_check": [
@@ -1109,6 +1158,7 @@
             "as_a": "Пользователь",
             "i_want": "выбирать формат экспорта через удобный интерфейс",
             "so_that": "быстро получать файл в нужном расширении.",
+            "assignees": "g1obyyy",
             "metadata": {
               "tags": [],
               "requirements_check": [
