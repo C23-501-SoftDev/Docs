@@ -5,7 +5,7 @@
     "priority": 1,
     "title": "Администрирование и Безопасность (Admin & Security)",
     "description": "Управление доступом, пользователями и системными настройками. Без пользователей и пространств невозможно создавать документы.",
-    "assignees": ["val-5", "avekIT47", "X"],
+    "assignees": ["val-5", "avekIT47", "MatushaI"],
     "metadata": {
       "tags": [],
       "requirements_check": [
@@ -290,7 +290,7 @@
         "type": "Feature",
         "title": "Производительность системы",
         "description": "Оптимизация времени отклика и работы под нагрузкой.",
-        "assignees": ["X"],
+        "assignees": ["MatushaI"],
         "metadata": {
           "tags": [],
           "requirements_check": [
@@ -310,7 +310,7 @@
             "as_a": "Пользователь",
             "i_want": "чтобы страницы открывались быстро (до 2 секунд)",
             "so_that": "комфортно работать с документацией без задержек.",
-            "assignees": "X",
+            "assignees": "MatushaI",
             "metadata": {
               "tags": [],
               "requirements_check": [
@@ -1057,7 +1057,7 @@
     "priority": 5,
     "title": "Экспорт и Отчетность (Export)",
     "description": "Выгрузка данных из системы в различных форматах.",
-    "assignees": ["X", "g1obyyy"],
+    "assignees": ["MatushaI", "g1obyyy"],
     "metadata": {
       "tags": [],
       "requirements_check": [
@@ -1075,7 +1075,7 @@
         "type": "Feature",
         "title": "Экспорт документов",
         "description": "Выгрузка в PDF, DOCX, HTML с сохранением структуры.",
-        "assignees": ["X", "g1obyyy"],
+        "assignees": ["MatushaI", "g1obyyy"],
         "metadata": {
           "tags": [],
           "requirements_check": [
@@ -1095,7 +1095,7 @@
             "as_a": "Система",
             "i_want": "корректно преобразовывать Wiki-разметку в HTML",
             "so_that": "документы выглядели профессионально при экспорте.",
-            "assignees": "X",
+            "assignees": "MatushaI",
             "metadata": {
               "tags": [],
               "requirements_check": [
@@ -1116,7 +1116,7 @@
             "as_a": "Пользователь",
             "i_want": "экспортировать документы в формат PDF",
             "so_that": "делиться ими в неизменяемом виде, удобном для печати.",
-            "assignees": "X",
+            "assignees": "MatushaI",
             "metadata": {
               "tags": [],
               "requirements_check": [
@@ -1137,7 +1137,7 @@
             "as_a": "Пользователь",
             "i_want": "экспортировать документы в формат DOCX",
             "so_that": "продолжать работу над ними в офисных приложениях.",
-            "assignees": "X",
+            "assignees": "MatushaI",
             "metadata": {
               "tags": [],
               "requirements_check": [
