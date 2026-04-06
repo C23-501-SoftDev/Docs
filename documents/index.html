@@ -135,6 +135,22 @@
         color: #7f8c8d;
         border: 1px solid #dfe6e9;
       }
+      .assignees {
+        display: inline-flex;
+        gap: 4px;
+        margin-left: 8px;
+        vertical-align: middle;
+      }
+      .assignee {
+        display: inline-block;
+        background: #d1e8ff;
+        padding: 1px 6px;
+        border-radius: 10px;
+        font-size: 0.7em;
+        color: #0056b3;
+        border: 1px solid #b8daff;
+        font-weight: 600;
+      }
       .node-header {
         display: flex;
         align-items: center;
@@ -385,6 +401,14 @@
             ? `<span class="priority-badge" title="Приоритет">P${node.priority}</span>`
             : "";
 
+        const assignees = Array.isArray(node.assignees)
+          ? node.assignees
+          : (node.assignees ? [node.assignees] : []);
+
+        const assigneesHtml = assignees.length > 0
+            ? `<div class="assignees">${assignees.map((a) => `<span class="assignee" title="Ответственный">${a}</span>`).join("")}</div>`
+            : "";
+
         const reqs =
           node.metadata && node.metadata.requirements_check
             ? node.metadata.requirements_check
@@ -405,6 +429,7 @@
                     <span class="id">${node.id}</span>
                     <span class="title">${node.title}</span>
                     ${priorityHtml}
+                    ${assigneesHtml}
                     ${reqBtnHtml}
                     ${detailsBtnHtml}
                     ${tagsHtml}
