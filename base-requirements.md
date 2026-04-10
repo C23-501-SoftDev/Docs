@@ -291,7 +291,7 @@ stateDiagram-v2
 
 1. **Стек технологий:** 
    - **Бэкенд:** Java 17+, Spring Boot, Spring Security, Spring Data JPA, Maven.
-   - **Фронтенд:** React 18+, JavaScript/TypeScript, Axios, Tiptap Editor (WYSIWYG).
+   - **Фронтенд:** Серверный рендеринг с Thymeleaf, JavaScript/TypeScript для интерактивных компонентов, Tiptap Editor (WYSIWYG).
    - **База данных:** PostgreSQL 18.
    - **Контроль версий:** JGit (для работы с Git-репозиторием).
 2. **Архитектура:** Чистая архитектура с RESTful API.
