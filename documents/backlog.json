@@ -5,7 +5,7 @@
     "priority": 1,
     "title": "Администрирование и Безопасность (Admin & Security)",
     "description": "Управление доступом, пользователями и системными настройками. Без пользователей и пространств невозможно создавать документы.",
-    "assignees": ["val-5", "avekIT47", "MatushaI"],
+    "assignees": ["val-5", "avekIT47", "MatushaI", "uretskayaaol"],
     "metadata": {
       "tags": [],
       "requirements_check": [
@@ -24,7 +24,7 @@
         "type": "Feature",
         "title": "Управление пользователями (RBAC)",
         "description": "Регистрация, авторизация и роли (Admin, Editor, Reader).",
-        "assignees": ["val-5", "avekIT47"],
+        "assignees": ["val-5", "avekIT47", "uretskayaaol"],
         "metadata": {
           "tags": [
             "MVP"
@@ -364,7 +364,7 @@
     "priority": 2,
     "title": "Управление контентом (Content Management)",
     "description": "Основной функционал по работе с документами, шаблонами и вложениями.",
-    "assignees": ["chudnik", "polina-dudukova", "uretskayaaol", "Nigmatul", "prosteyshee"],
+    "assignees": ["chudnik", "polina-dudukova", "uretskayaaol", "g1obyyy", "prosteyshee"],
     "metadata": {
       "tags": [],
       "requirements_check": [
@@ -407,18 +407,18 @@
           {
             "id": "US1.1.1",
             "type": "UserStory",
-            "title": "Разработка двухпанельного интерфейса редактора",
-            "as_a": "Редактор документации",
-            "i_want": "использовать двухпанельный редактор с поддержкой Markdown и предпросмотром в реальном времени",
-            "so_that": "удобно создавать и форматировать документы, сразу видя результат.",
+            "title": "Предпросмотр Wiki-разметки в реальном времени",
+            "as_a": "Редактор",
+            "i_want": "при создании или правке документа сразу видеть справа от текста, как он будет выглядеть после сохранения (WYSIWYG)",
+            "so_that": "я был уверен в корректности форматирования (заголовки, списки, выделения) до публикации.",
             "assignees": "chudnik",
             "metadata": {
-              "tags": ["Frontend", "MVP"],
+              "tags": ["Frontend", "MVP", "Tiptap", "Editor"],
               "requirements_check": [
                 {
                   "document": "logic_scheme.md",
                   "texts": [
-                    "Включает встраиваемый Tiptap Editor – WYSIWYG-редактор с поддержкой Markdown, двухпанельным интерфейсом"
+                    "Включает встраиваемый Tiptap Editor – WYSIWYG-редактор с поддержкой Markdown и двухпанельным интерфейсом"
                   ]
                 }
               ]
@@ -474,48 +474,6 @@
           {
             "id": "US1.1.4",
             "type": "UserStory",
-            "title": "Единый стиль и навигация по приложению",
-            "as_a": "Пользователь (Читатель/Редактор)",
-            "i_want": "видеть одинаковую шапку, боковое меню и оформление на всех страницах системы",
-            "so_that": "я мог легко ориентироваться в интерфейсе и не путаться при переходе между разделами.",
-            "assignees": "prosteyshee",
-            "metadata": {
-              "tags": ["Frontend", "MVP", "Thymeleaf", "Layout"],
-              "requirements_check": [
-                {
-                  "document": "logic_scheme.md",
-                  "texts": [
-                    "Страницы формируются на сервере и отправляются клиенту в виде готового HTML."
-                  ]
-                }
-              ]
-            },
-            "children": []
-          },
-          {
-            "id": "US1.1.5",
-            "type": "UserStory",
-            "title": "Предпросмотр Wiki-разметки в реальном времени",
-            "as_a": "Редактор",
-            "i_want": "при создании или правке документа сразу видеть справа от текста, как он будет выглядеть после сохранения (WYSIWYG)",
-            "so_that": "я был уверен в корректности форматирования (заголовки, списки, выделения) до публикации.",
-            "assignees": "chudnik",
-            "metadata": {
-              "tags": ["Frontend", "MVP", "Tiptap", "Editor"],
-              "requirements_check": [
-                {
-                  "document": "logic_scheme.md",
-                  "texts": [
-                    "Включает встраиваемый Tiptap Editor – WYSIWYG-редактор с поддержкой Markdown и двухпанельным интерфейсом"
-                  ]
-                }
-              ]
-            },
-            "children": []
-          },
-          {
-            "id": "US1.1.6",
-            "type": "UserStory",
             "title": "Безопасное сохранение изменений в документе",
             "as_a": "Редактор",
             "i_want": "быть уверенным, что сохранение моих правок происходит по защищенному каналу и никто не сможет подделать запрос от моего имени",
@@ -535,7 +493,7 @@
             "children": []
           },
           {
-            "id": "US1.1.7",
+            "id": "US1.1.5",
             "type": "UserStory",
             "title": "Удобный просмотр опубликованного документа",
             "as_a": "Читатель",
@@ -556,7 +514,7 @@
             "children": []
           },
           {
-            "id": "US1.1.8",
+            "id": "US1.1.6",
             "type": "UserStory",
             "title": "Указание параметров документа перед созданием",
             "as_a": "Редактор",
@@ -693,7 +651,7 @@
         "type": "Feature",
         "title": "Blob-хранилище для файловых вложений",
         "description": "Отдельное хранилище для изображений и бинарных файлов, не входящее в Git-репозиторий.",
-        "assignees": ["Nigmatul"],
+        "assignees": ["g1obyyy"],
         "metadata": {
           "tags": ["Backend"],
           "requirements_check": [
@@ -960,7 +918,7 @@
     "priority": 4,
     "title": "Жизненный цикл и Версионность (Lifecycle & Versioning)",
     "description": "Управление статусами документов и историей их изменений через Git.",
-    "assignees": ["g1obyyy", "Nigmatul"],
+    "assignees": ["g1obyyy", "Nigmatul", "uretskayaaol"],
     "metadata": {
       "tags": [],
       "requirements_check": [
@@ -1063,7 +1021,7 @@
         "type": "Feature",
         "title": "Контроль версий (Git Integration)",
         "description": "Интеграция с Git для хранения истории и сравнения версий.",
-        "assignees": ["Nigmatul", "g1obyyy"],
+        "assignees": ["Nigmatul", "g1obyyy", "uretskayaaol"],
         "metadata": {
           "tags": [
             "MVP"
@@ -1230,7 +1188,7 @@
     "priority": 5,
     "title": "Экспорт и Отчетность (Export)",
     "description": "Выгрузка данных из системы в различных форматах.",
-    "assignees": ["MatushaI", "g1obyyy"],
+    "assignees": ["MatushaI", "uretskayaaol"],
     "metadata": {
       "tags": [],
       "requirements_check": [
@@ -1248,7 +1206,7 @@
         "type": "Feature",
         "title": "Экспорт документов",
         "description": "Выгрузка в PDF, DOCX, HTML с сохранением структуры.",
-        "assignees": ["MatushaI", "g1obyyy"],
+        "assignees": "MatushaI",
         "metadata": {
           "tags": [],
           "requirements_check": [
