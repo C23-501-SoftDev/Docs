@@ -88,7 +88,24 @@ border-radius: 12px;
 padding: 16px;
 box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 
----
+## Таблицы
+- Ширина 100%
+- Заголовок (thead): background #F9FAFB, font-weight 600, border-bottom 2px solid #E5E7EB
+- Строки (tbody tr): border-bottom 1px solid #E5E7EB
+- Отступы (padding): 12px 16px
+- Текст при наведении (hover): background #F3F4F6
+
+## Фильтры
+- Основа: Input (см. раздел Формы) или выпадающий список (Select)
+- Label: font-weight 500, font-size 14px
+- Gap: 8px между элементами фильтрации
+- Кнопка сброса: Secondary style, но меньше размер
+## Пагинация
+- Контейнер: flex, gap 8px, align-items center
+- Кнопки (страницы):
+  - Normal: border 1px solid #E5E7EB; background #FFFFFF
+  - Active: background #2563EB; color #FFFFFF; border none
+  - Disabled: opacity 0.5, cursor not-allowed
 
 ## Навигация
 
@@ -164,3 +181,4 @@ padding: 16px;
 - Design system (компоненты)
 - UI-kit
 - Figma макеты
+
