@@ -398,12 +398,12 @@
 
     <!-- Вкладки -->
     <div class="tabs">
-      <button class="tab active" onclick="switchTab('workload')">👥 Нагрузка разработчиков</button>
-      <button class="tab" onclick="switchTab('backlog')">🌳 Иерархия бэклога</button>
+      <button class="tab" onclick="switchTab('workload')">👥 Нагрузка разработчиков</button>
+      <button class="tab active" onclick="switchTab('backlog')">🌳 Иерархия бэклога</button>
     </div>
 
     <!-- Вкладка "Нагрузка разработчиков" -->
-    <div id="tab-workload" class="tab-content active">
+    <div id="tab-workload" class="tab-content">
       <div class="workload-section">
         <h2>Распределение задач и оценка сложности</h2>
         
@@ -450,7 +450,7 @@
     </div>
 
     <!-- Вкладка "Иерархия бэклога" -->
-    <div id="tab-backlog" class="tab-content">
+    <div id="tab-backlog" class="tab-content active">
       <div id="backlog" class="backlog-container">Загрузка данных...</div>
     </div>
 
