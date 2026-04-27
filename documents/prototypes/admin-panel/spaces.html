@@ -135,6 +135,7 @@
           <td>${escapeHtml(s.owner)}</td>
           <td><span class="badge ${s.status.toLowerCase()}">${s.status}</span></td>
           <td class="actions">
+            <a href="space-permissions.html?id=${s.id}&name=${encodeURIComponent(s.name)}" class="button-secondary" style="text-decoration:none; padding: 6px 12px; min-width: auto;">Permissions</a>
             <button class="button-secondary" onclick="editSpace(${s.id})">Edit</button>
             <button class="button-danger" onclick="deleteSpacePrompt(${s.id})">Delete</button>
           </td>

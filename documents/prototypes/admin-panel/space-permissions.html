@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel - Space Permissions</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .space-info {
+      background: #FFF;
+      padding: 16px;
+      border: 1px solid #E5E7EB;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+    .space-info h2 { margin: 0 0 8px 0; font-size: 1.25rem; }
+    .space-info p { margin: 0; color: #6B7280; }
+    .permission-badge {
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 11px;
+    }
+    .badge.owner { background: #FEE2E2; color: #991B1B; }
+    .badge.write { background: #DBEAFE; color: #1E40AF; }
+    .badge.read { background: #F3F4F6; color: #374151; }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <h2>Admin Panel</h2>
+    <ul>
+      <li><a href="users.html">Users</a></li>
+      <li class="active"><a href="spaces.html">Spaces</a></li>
+      <li><a href="settings.html">Settings</a></li>
+    </ul>
+  </div>
+
+  <div class="content">
+    <div class="header">
+      <div style="display:flex; align-items:center; gap:16px;">
+        <a href="spaces.html" class="button-secondary" style="min-width:auto; padding: 8px 12px;">&larr; Back</a>
+        <h1>Space Permissions</h1>
+      </div>
+      <button class="button-primary" id="addPermissionBtn">+ Assign Permission</button>
+    </div>
+
+    <div class="space-info" id="spaceHeader">
+      <h2 id="spaceTitle">Project Alpha</h2>
+      <p id="spaceDesc">Development space for main application</p>
+    </div>
+
+    <!-- Permissions Table -->
+    <div id="permissionsSection">
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>User / Group</th>
+              <th>Role</th>
+              <th>Granted By</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="permissionsTbody">
+            <!-- Data will be injected here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Assign Permission Modal -->
+<div class="modal" id="permissionModal">
+  <div class="modal-content">
+    <h3>Assign Permission</h3>
+    <div class="form-group">
+      <label>User or Group *</label>
+      <input id="targetIdentity" placeholder="Enter username or group name">
+    </div>
+    <div class="form-group">
+      <label>Access Level *</label>
+      <select id="accessLevel">
+        <option value="READ">READ (View and Export)</option>
+        <option value="WRITE">WRITE (Edit and Manage Documents)</option>
+        <option value="OWNER">OWNER (Full Control)</option>
+      </select>
+    </div>
+    <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:20px;">
+      <button class="button-primary" id="savePermissionBtn">Save</button>
+      <button class="button-secondary" id="closeModalBtn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal" id="deleteModal">
+  <div class="modal-content">
+    <p>Are you sure you want to revoke this permission?</p>
+    <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:20px;">
+      <button class="button-secondary" id="cancelDeleteBtn">Cancel</button>
+      <button class="button-danger" id="confirmDeleteBtn">Revoke</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Success</div>
+
+<script>
+  // Mock data for permissions
+  let permissions = [
+    { id: 1, identity: 'johndoe', role: 'OWNER', grantedBy: 'system' },
+    { id: 2, identity: 'Developers', role: 'WRITE', grantedBy: 'johndoe' },
+    { id: 3, identity: 'QA_Team', role: 'READ', grantedBy: 'johndoe' },
+    { id: 4, identity: 'alice', role: 'READ', grantedBy: 'admin' }
+  ];
+
+  let pendingDeleteId = null;
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 2000);
+  }
+
+  function renderPermissions() {
+    const tbody = document.getElementById('permissionsTbody');
+    tbody.innerHTML = permissions.map(p => `
+      <tr>
+        <td><strong>${p.identity}</strong></td>
+        <td><span class="badge ${p.role.toLowerCase()} permission-badge">${p.role}</span></td>
+        <td>${p.grantedBy}</td>
+        <td class="actions">
+          <button class="button-danger" onclick="promptRevoke(${p.id})">Revoke</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function promptRevoke(id) {
+    pendingDeleteId = id;
+    document.getElementById('deleteModal').style.display = 'flex';
+  }
+
+  function confirmRevoke() {
+    permissions = permissions.filter(p => p.id !== pendingDeleteId);
+    showToast('Permission revoked');
+    renderPermissions();
+    document.getElementById('deleteModal').style.display = 'none';
+  }
+
+  function savePermission() {
+    const identity = document.getElementById('targetIdentity').value.trim();
+    const role = document.getElementById('accessLevel').value;
+    
+    if (!identity) {
+      showToast('User or Group is required');
+      return;
+    }
+
+    const newId = permissions.length ? Math.max(...permissions.map(p => p.id)) + 1 : 1;
+    permissions.push({
+      id: newId,
+      identity: identity,
+      role: role,
+      grantedBy: 'admin'
+    });
+
+    showToast(`Permission granted to ${identity}`);
+    document.getElementById('permissionModal').style.display = 'none';
+    renderPermissions();
+    
+    // Reset form
+    document.getElementById('targetIdentity').value = '';
+    document.getElementById('accessLevel').value = 'READ';
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Try to get space info from URL (mocking)
+    const urlParams = new URLSearchParams(window.location.search);
+    const spaceName = urlParams.get('name');
+    if (spaceName) {
+      document.getElementById('spaceTitle').innerText = spaceName;
+    }
+
+    renderPermissions();
+
+    document.getElementById('addPermissionBtn').onclick = () => {
+      document.getElementById('permissionModal').style.display = 'flex';
+    };
+
+    document.getElementById('closeModalBtn').onclick = () => {
+      document.getElementById('permissionModal').style.display = 'none';
+    };
+
+    document.getElementById('savePermissionBtn').onclick = savePermission;
+    document.getElementById('cancelDeleteBtn').onclick = () => {
+      document.getElementById('deleteModal').style.display = 'none';
+    };
+    document.getElementById('confirmDeleteBtn').onclick = confirmRevoke;
+
+    window.onclick = (e) => {
+      if (e.target.classList.contains('modal')) e.target.style.display = 'none';
+    };
+  });
+</script>
+</body>
+</html>
