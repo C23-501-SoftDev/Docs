@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RBAC - Role Based Access Control (US4.1.3)</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .role-selector {
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #fff;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Highlight styles for simulation buttons */
+        .btn-sim {
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .active-reader { border-color: #6B7280 !important; background: #F3F4F6 !important; color: #6B7280 !important; }
+        .active-editor { border-color: #2563EB !important; background: #DBEAFE !important; color: #2563EB !important; }
+        .active-admin { border-color: #991B1B !important; background: #FEE2E2 !important; color: #991B1B !important; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    </style>
+</head>
+<body>
+    <!-- Modal for Space Creation -->
+    <div id="spaceModal" class="modal">
+        <div class="modal-content">
+            <h3>Create New Space</h3>
+            <div class="form-group">
+                <label style="font-size: 12px; color: #6B7280;">Space Name</label>
+                <input type="text" placeholder="e.g. Marketing Docs">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                <button class="button-secondary" onclick="closeModal()">Cancel</button>
+                <button class="button-primary" onclick="alert('Space Created!'); closeModal();">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="role-selector">
+            <strong>Switch Mode:</strong>
+            <button id="btn-reader" class="button-outline btn-sim" onclick="setRole('Reader')">Reader</button>
+            <button id="btn-editor" class="button-outline btn-sim" onclick="setRole('Editor')">Editor</button>
+            <button id="btn-admin" class="button-outline btn-sim active-admin" onclick="setRole('Admin')">Admin</button>
+            <span id="current-role-display">Current JWT Role: <span class="badge Admin">Admin</span></span>
+        </div>
+
+        <h1>Access Management (RBAC)</h1>
+        
+        <div class="rbac-grid">
+            <!-- Left Column: User Info -->
+            <div class="user-profile-card">
+                <div class="card">
+                    <h3>User Profile</h3>
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                        <div style="width: 48px; height: 48px; background: #E5E7EB; border-radius: 50%;"></div>
+                        <div>
+                            <div style="font-weight: 600;">ivan_user</div>
+                            <div class="meta-info">ivan@example.com</div>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <label class="meta-info">Global Role:</label>
+                        <span id="role-badge" class="badge Admin">Admin</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Your Permissions</h3>
+                    <p class="meta-info">Based on Global Role & Space Permissions</p>
+                    <div id="permissions-list">
+                        <div style="margin-bottom: 12px;">
+                            <strong>Documents:</strong><br>
+                            <span class="perm-tag" id="p-read">READ: Yes</span>
+                            <span class="perm-tag" id="p-write">WRITE: Yes</span>
+                            <span class="perm-tag" id="p-create">CREATE: Yes</span>
+                        </div>
+                        <div>
+                            <strong>System Administration:</strong><br>
+                            <span class="perm-tag" id="p-admin">ADMIN: Yes</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Spaces table -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>Spaces & Permissions</h2>
+                    <button id="btn-create-space" class="button-primary" onclick="openModal()">+ Create Space</button>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Space Name</th>
+                            <th>Access Level</th>
+                            <th>Available Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <strong>Core Architecture</strong><br>
+                                <span class="meta-info">Critical documentation</span>
+                            </td>
+                            <td><span class="badge Reader">READ</span></td>
+                            <td>
+                                <button class="button-outline" style="padding: 4px 8px; font-size: 12px;">View</button>
+                                <button class="button-secondary edit-action" id="s1-edit" disabled style="padding: 4px 8px; font-size: 12px; min-width: auto;">Edit</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Project Alpha</strong><br>
+                                <span class="meta-info">Team workspace</span>
+                            </td>
+                            <td><span class="badge Editor">OWNER</span></td>
+                            <td>
+                                <button class="button-outline" style="padding: 4px 8px; font-size: 12px;">View</button>
+                                <button class="button-secondary edit-action" id="s2-edit" style="padding: 4px 8px; font-size: 12px; min-width: auto;">Edit</button>
+                                <button class="button-outline edit-action" id="s2-settings" style="padding: 4px 8px; font-size: 12px;">⚙️</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Public Guides</strong><br>
+                                <span class="meta-info">Open for everyone</span>
+                            </td>
+                            <td><span class="badge">GUEST</span></td>
+                            <td>
+                                <button class="button-outline" style="padding: 4px 8px; font-size: 12px;">View</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal() { document.getElementById('spaceModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('spaceModal').style.display = 'none'; }
+
+        function setRole(role) {
+            const badge = document.getElementById('role-badge');
+            const roleDisplay = document.getElementById('current-role-display');
+            const createBtn = document.getElementById('btn-create-space');
+            
+            // Buttons highlight
+            document.querySelectorAll('.btn-sim').forEach(b => {
+                b.classList.remove('active-reader', 'active-editor', 'active-admin');
+            });
+            const activeBtn = document.getElementById('btn-' + role.toLowerCase());
+            activeBtn.classList.add('active-' + role.toLowerCase());
+
+            // Text Update
+            badge.className = 'badge ' + role;
+            badge.textContent = role;
+            roleDisplay.innerHTML = `Current JWT Role: <span class="badge ${role}">${role}</span>`;
+
+            const pRead = document.getElementById('p-read');
+            const pWrite = document.getElementById('p-write');
+            const pCreate = document.getElementById('p-create');
+            const pAdmin = document.getElementById('p-admin');
+
+            // Permissions Logic
+            if (role === 'Admin') {
+                updatePerm(pRead, true); updatePerm(pWrite, true); updatePerm(pCreate, true); updatePerm(pAdmin, true);
+                createBtn.disabled = false;
+                document.getElementById('s1-edit').disabled = false;
+                document.getElementById('s2-edit').disabled = false;
+                document.getElementById('s2-settings').disabled = false;
+            } else if (role === 'Editor') {
+                updatePerm(pRead, true); updatePerm(pWrite, true); updatePerm(pCreate, true); updatePerm(pAdmin, false);
+                createBtn.disabled = false;
+                document.getElementById('s1-edit').disabled = true; 
+                document.getElementById('s2-edit').disabled = false;
+                document.getElementById('s2-settings').disabled = false;
+            } else {
+                updatePerm(pRead, true); updatePerm(pWrite, false); updatePerm(pCreate, false); updatePerm(pAdmin, false);
+                createBtn.disabled = true;
+                document.getElementById('s1-edit').disabled = true;
+                document.getElementById('s2-edit').disabled = true;
+                document.getElementById('s2-settings').disabled = true;
+            }
+        }
+
+        function updatePerm(el, allowed) {
+            el.className = allowed ? 'perm-tag' : 'perm-tag no';
+            el.textContent = el.id.replace('p-', '').toUpperCase() + ': ' + (allowed ? 'Yes' : 'No');
+        }
+
+        // Initialize as Admin
+        window.onload = () => setRole('Admin');
+    </script>
+</body>
+</html>

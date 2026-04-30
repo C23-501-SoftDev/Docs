@@ -11,10 +11,24 @@ body { font-family: Inter, Arial, sans-serif; background:#F9FAFB; margin:0; colo
 .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
 .button-primary { background:#2563EB; color:#FFF; border-radius:8px; padding:8px 16px; border:none; cursor:pointer; font-weight:500; transition:0.2s; }
 .button-primary:hover { background:#1D4ED8; }
+.button-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 .button-secondary { background:#E5E7EB; border-radius:8px; padding:8px 16px; border:none; cursor:pointer; font-weight:500; min-width:100px; text-align:center; }
 .button-secondary:hover { background:#D1D5DB; }
+.button-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
 .button-danger { background:#DC2626; color:#FFF; border-radius:8px; padding:6px 12px; border:none; cursor:pointer; }
 .button-danger:hover { background:#B91C1C; }
+.button-outline { background: transparent; border: 1px solid #E5E7EB; color: #6B7280; border-radius:8px; padding:8px 16px; cursor:pointer; }
+.button-outline:hover { background: #F9FAFB; }
+
+/* RBAC Specific Styles */
+.rbac-grid { display: grid; grid-template-columns: 300px 1fr; gap: 24px; margin-top: 24px; }
+.user-profile-card { display: flex; flex-direction: column; gap: 16px; }
+.card { background: #FFF; border: 1px solid #E5E7EB; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.meta-info { font-size: 13px; color: #6B7280; }
+.perm-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; background: #ECFDF5; color: #065F46; margin-right: 4px; border: 1px solid #D1FAE5; }
+.perm-tag.no { background: #FFF1F2; color: #9F1239; border-color: #FFE4E6; }
+.alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
+.alert-info { background: #E0F2FE; color: #0369A1; border: 1px solid #BAE6FD; }
 table { width:100%; border-collapse:collapse; background:#FFF; border:1px solid #E5E7EB; border-radius:12px; overflow:hidden; }
 th, td { padding:12px; border-bottom:1px solid #E5E7EB; text-align:left; }
 .actions button { margin-right:8px; }
