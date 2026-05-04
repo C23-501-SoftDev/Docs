@@ -38,6 +38,9 @@ th, td { padding:12px; border-bottom:1px solid #E5E7EB; text-align:left; }
 .badge.Admin { background:#DBEAFE; color:#1E40AF; }
 .badge.Editor { background:#D1FAE5; color:#166534; }
 .badge.Reader { background:#FEF3C7; color:#92400E; }
+.badge.draft { background:#FEF3C7; color:#92400E; }
+.badge.published { background:#DCFCE7; color:#166534; }
+.badge.deleted { background:#FEE2E2; color:#991B1B; }
 .modal { position:fixed; inset:0; background:rgba(0,0,0,0.4); display:none; justify-content:center; align-items:center; z-index:1000; }
 .modal-content { background:#FFF; padding:24px; border-radius:16px; width:450px; max-width:90vw; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); }
 .form-group { margin-bottom:16px; }

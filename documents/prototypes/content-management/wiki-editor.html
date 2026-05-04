@@ -4,6 +4,24 @@
   <meta charset="UTF-8">
   <title>Wiki Editor — US1.1.1</title>
   <link rel="stylesheet" href="../style.css">
+  <style>
+    .editor-metadata {
+      padding: 12px 24px;
+      border-bottom: 1px solid #E5E7EB;
+      background: #FFF;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .editor-metadata .field { display:flex; align-items:center; gap:6px; }
+    .editor-metadata .field label { font-size:12px; font-weight:600; color:#6B7280; text-transform:uppercase; }
+    .editor-metadata .field input,
+    .editor-metadata .field select {
+      width:auto; padding:4px 8px; font-size:13px;
+    }
+    .editor-metadata .field input { min-width:180px; }
+  </style>
 </head>
 <body>
 <div class="layout">
@@ -12,15 +30,46 @@
     <ul>
       <li><a href="index.html">Dashboard</a></li>
       <li class="active"><a href="wiki-editor.html">Wiki Editor</a></li>
+      <li><a href="documents.html">Documents</a></li>
     </ul>
   </div>
 
   <div class="content" style="padding:0; display:flex; flex-direction:column;">
     <div class="editor-header">
-      <h1 style="margin:0; font-size:20px;">Document Editor</h1>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <a href="documents.html" class="button-secondary" style="min-width:auto; padding:6px 12px; text-decoration:none;">&larr; Documents</a>
+        <h1 style="margin:0; font-size:18px;" id="editorTitle">New Document</h1>
+      </div>
       <div class="editor-actions">
         <span class="editor-status" id="statusBadge">Draft</span>
-        <button class="button-primary" onclick="showToast('Document saved')">Save</button>
+        <button class="button-primary" onclick="saveDocument()">Save</button>
+      </div>
+    </div>
+
+    <div class="editor-metadata">
+      <div class="field">
+        <label>Title</label>
+        <input type="text" id="docTitleField" value="New Document" oninput="updateHeaderTitle()">
+      </div>
+      <div class="field">
+        <label>Space</label>
+        <select id="docSpaceField">
+          <option value="Project Alpha">Project Alpha</option>
+          <option value="Project Beta">Project Beta</option>
+          <option value="Knowledge Base">Knowledge Base</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Status</label>
+        <select id="docStatusField" onchange="updateStatusBadge()">
+          <option value="Draft">Draft</option>
+          <option value="Published">Published</option>
+          <option value="Deleted">Deleted</option>
+        </select>
+      </div>
+      <div class="field" id="authorFieldContainer">
+        <label>Author</label>
+        <span id="authorField" style="font-size:13px; color:#374151;">—</span>
       </div>
     </div>
 
@@ -57,44 +106,9 @@
 <div class="toast" id="toast">Success</div>
 
 <script>
-  window.__INITIAL_CONTENT__ = `# Документация API
-
-## Введение
-
-Данный документ описывает **REST API** для управления контентом.
-
-### Базовый URL
-
-\`\`\`
-https://api.example.com/v1
-\`\`\`
-
-## Эндпоинты
-
-- \`GET /documents\` — получить список документов
-- \`POST /documents\` — создать новый документ
-- \`PUT /documents/{id}\` — обновить документ
-
-### Пример запроса
-
-\`\`\`json
-{
-  "title": "Мой документ",
-  "content": "# Hello World",
-  "status": "Draft"
-}
-\`\`\`
-
-## Форматирование
-
-*Поддерживается* **жирный** текст, \`код\`, списки и изображения:
-
-![Logo](https://placehold.co/600x200/2563EB/FFFFFF?text=Wiki+Preview)
-
-> Примечание: предпросмотр обновляется в реальном времени.`;
-
   let editor = document.getElementById('editorTextarea');
   let preview = document.getElementById('previewContent');
+  let currentDocId = null;
 
   function showToast(msg) {
     const toast = document.getElementById('toast');
@@ -165,7 +179,6 @@ https://api.example.com/v1
 
       let processed = line;
 
-      // blockquote
       if (/^>\s?/.test(processed)) {
         if (inList) { html += '</ul>\n'; inList = false; }
         processed = processed.replace(/^>\s?/, '');
@@ -174,7 +187,6 @@ https://api.example.com/v1
         continue;
       }
 
-      // headings
       const headingMatch = processed.match(/^(#{1,6})\s+(.+)$/);
       if (headingMatch) {
         if (inList) { html += '</ul>\n'; inList = false; }
@@ -184,14 +196,12 @@ https://api.example.com/v1
         continue;
       }
 
-      // hr
       if (/^(-{3,}|\*{3,})$/.test(processed.trim())) {
         if (inList) { html += '</ul>\n'; inList = false; }
         html += '<hr>\n';
         continue;
       }
 
-      // unordered list
       if (/^[-*+]\s/.test(processed)) {
         if (!inList) { html += '<ul>\n'; inList = true; }
         processed = processed.replace(/^[-*+]\s/, '');
@@ -200,7 +210,6 @@ https://api.example.com/v1
         continue;
       }
 
-      // ordered list
       if (/^\d+\.\s/.test(processed)) {
         if (!inList) { html += '<ol>\n'; inList = true; }
         processed = processed.replace(/^\d+\.\s/, '');
@@ -214,13 +223,11 @@ https://api.example.com/v1
         inList = false;
       }
 
-      // empty line
       if (processed.trim() === '') {
         html += '\n';
         continue;
       }
 
-      // paragraph
       html += '<p>' + parseInline(processed) + '</p>\n';
     }
 
@@ -236,21 +243,67 @@ https://api.example.com/v1
 
   function parseInline(text) {
     let result = escapeHtml(text);
-    // images: ![alt](url)
     result = result.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="preview-img">');
-    // links: [text](url)
     result = result.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
-    // bold **text**
     result = result.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-    // italic *text*
     result = result.replace(/\*(.+?)\*/g, '<em>$1</em>');
-    // inline code
     result = result.replace(/`([^`]+)`/g, '<code>$1</code>');
     return result;
   }
 
-  function initEditor() {
-    editor.value = window.__INITIAL_CONTENT__ || '';
+  function updateHeaderTitle() {
+    const title = document.getElementById('docTitleField').value.trim() || 'Untitled';
+    document.getElementById('editorTitle').textContent = title;
+  }
+
+  function updateStatusBadge() {
+    const status = document.getElementById('docStatusField').value;
+    const badge = document.getElementById('statusBadge');
+    badge.textContent = status;
+    badge.style.background = status === 'Draft' ? '#FEF3C7' : status === 'Published' ? '#DCFCE7' : '#FEE2E2';
+    badge.style.color = status === 'Draft' ? '#92400E' : status === 'Published' ? '#166534' : '#991B1B';
+  }
+
+  function saveDocument() {
+    if (currentDocId === null) {
+      showToast('No document loaded');
+      return;
+    }
+    const stored = sessionStorage.getItem('documentsData');
+    if (!stored) { showToast('Error: document store not found'); return; }
+    let data;
+    try { data = JSON.parse(stored); } catch(e) { showToast('Error reading store'); return; }
+
+    const idx = data.findIndex(d => d.id === currentDocId);
+    if (idx === -1) { showToast('Document not found'); return; }
+
+    data[idx].title = document.getElementById('docTitleField').value.trim();
+    data[idx].space = document.getElementById('docSpaceField').value;
+    data[idx].status = document.getElementById('docStatusField').value;
+    data[idx].content = editor.value;
+    data[idx].updated = new Date().toISOString().slice(0, 10);
+
+    sessionStorage.setItem('documentsData', JSON.stringify(data));
+    showToast('Document saved');
+  }
+
+  function loadDocument(docId) {
+    const stored = sessionStorage.getItem('documentsData');
+    if (!stored) return;
+    let data;
+    try { data = JSON.parse(stored); } catch(e) { return; }
+
+    const doc = data.find(d => d.id === docId);
+    if (!doc) return;
+
+    currentDocId = docId;
+    document.getElementById('docTitleField').value = doc.title;
+    document.getElementById('docSpaceField').value = doc.space;
+    document.getElementById('docStatusField').value = doc.status;
+    document.getElementById('authorField').textContent = doc.author;
+    editor.value = doc.content || '';
+    updateHeaderTitle();
+    updateStatusBadge();
     renderPreview();
   }
 
@@ -259,17 +312,62 @@ https://api.example.com/v1
   editor.addEventListener('keydown', function(e) {
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
       e.preventDefault();
-      showToast('Document saved');
+      saveDocument();
     }
   });
 
   document.addEventListener('DOMContentLoaded', () => {
-    initEditor();
+    const params = new URLSearchParams(window.location.search);
+    const docId = params.get('docId');
+
+    if (docId) {
+      loadDocument(Number(docId));
+    } else {
+      editor.value = window.__INITIAL_CONTENT__ || '';
+      renderPreview();
+    }
+
     window.addEventListener('beforeunload', function(e) {
       e.preventDefault();
       e.returnValue = '';
     });
   });
+
+  window.__INITIAL_CONTENT__ = `# Документация API
+
+## Введение
+
+Данный документ описывает **REST API** для управления контентом.
+
+### Базовый URL
+
+\`\`\`
+https://api.example.com/v1
+\`\`\`
+
+## Эндпоинты
+
+- \`GET /documents\` — получить список документов
+- \`POST /documents\` — создать новый документ
+- \`PUT /documents/{id}\` — обновить документ
+
+### Пример запроса
+
+\`\`\`json
+{
+  "title": "Мой документ",
+  "content": "# Hello World",
+  "status": "Draft"
+}
+\`\`\`
+
+## Форматирование
+
+*Поддерживается* **жирный** текст, \`код\`, списки и изображения:
+
+![Logo](https://placehold.co/600x200/2563EB/FFFFFF?text=Wiki+Preview)
+
+> Примечание: предпросмотр обновляется в реальном времени.`;
 </script>
 </body>
 </html>
