@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>RBAC - Role Based Access Control (US4.1.3)</title>
+    <title>RBAC - Role Based Access Control</title>
     <link rel="stylesheet" href="../style.css">
     <style>
         .role-selector {
@@ -30,6 +30,20 @@
     </style>
 </head>
 <body>
+  <div class="layout">
+  <div class="sidebar">
+    <h2>Navigation</h2>
+    <ul>
+      <li><a href="index.html">Dashboard</a></li>
+      <li><a href="users.html">Users</a></li>
+      <li><a href="auth-setup.html">Auth & JWT</a></li>
+      <li><a href="spaces.html">Spaces</a></li>
+      <li class="active"><a href="rbac.html">RBAC</a></li>
+      <li><a href="settings.html">Settings</a></li>
+    </ul>
+  </div>
+  <div class="content">
+
     <!-- Modal for Space Creation -->
     <div id="spaceModal" class="modal">
         <div class="modal-content">
@@ -55,7 +69,7 @@
         </div>
 
         <h1>Access Management (RBAC)</h1>
-        
+
         <div class="rbac-grid">
             <!-- Left Column: User Info -->
             <div class="user-profile-card">
@@ -73,7 +87,6 @@
                         <span id="role-badge" class="badge Admin">Admin</span>
                     </div>
                 </div>
-
                 <div class="card">
                     <h3>Your Permissions</h3>
                     <p class="meta-info">Based on Global Role & Space Permissions</p>
@@ -146,6 +159,8 @@
             </div>
         </div>
     </div>
+  </div>
+</div>
 
     <script>
         function openModal() { document.getElementById('spaceModal').style.display = 'flex'; }
@@ -205,3 +220,4 @@
     </script>
 </body>
 </html>
+
