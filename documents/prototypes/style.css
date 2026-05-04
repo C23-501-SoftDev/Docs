@@ -57,3 +57,36 @@ input, select, textarea { width:100%; padding:8px 12px; border:1px solid #E5E7EB
 th[data-sort] { cursor:pointer; user-select:none; }
 th[data-sort].sort-asc::after { content: " ↑"; color:#2563EB; font-size:0.8em; }
 th[data-sort].sort-desc::after { content: " ↓"; color:#DC2626; font-size:0.8em; }
+
+/* Wiki Editor Styles */
+.editor-header { display:flex; justify-content:space-between; align-items:center; padding:12px 24px; border-bottom:1px solid #E5E7EB; background:#FFF; }
+.editor-actions { display:flex; align-items:center; gap:12px; }
+.editor-status { display:inline-block; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:500; background:#DCFCE7; color:#166534; }
+.editor-layout { display:flex; flex:1; overflow:hidden; }
+.editor-pane { flex:1; display:flex; flex-direction:column; border-right:1px solid #E5E7EB; background:#FFF; min-width:0; }
+.preview-pane { flex:1; display:flex; flex-direction:column; background:#FFF; min-width:0; }
+.pane-header { display:flex; justify-content:space-between; align-items:center; padding:10px 16px; border-bottom:1px solid #E5E7EB; background:#F9FAFB; }
+.pane-label { font-weight:600; font-size:13px; color:#374151; text-transform:uppercase; letter-spacing:0.5px; }
+.pane-hint { font-size:12px; color:#9CA3AF; }
+.editor-toolbar { display:flex; gap:4px; padding:8px 12px; border-bottom:1px solid #E5E7EB; background:#FFF; flex-wrap:wrap; }
+.toolbar-btn { padding:4px 10px; border:1px solid #E5E7EB; border-radius:6px; background:#FFF; cursor:pointer; font-size:13px; font-family:inherit; color:#374151; transition:0.15s; }
+.toolbar-btn:hover { background:#F3F4F6; border-color:#D1D5DB; }
+.toolbar-btn:active { background:#E5E7EB; }
+.editor-textarea { flex:1; padding:16px; border:none; outline:none; resize:none; font-family:'JetBrains Mono','Fira Code','Cascadia Code',monospace; font-size:14px; line-height:1.7; color:#111827; background:#FFF; min-height:300px; tab-size:2; }
+.editor-textarea::placeholder { color:#9CA3AF; }
+.preview-content { flex:1; padding:16px 24px; overflow-y:auto; line-height:1.7; font-size:15px; color:#111827; }
+.preview-content h1 { font-size:28px; font-weight:700; margin:24px 0 12px; padding-bottom:8px; border-bottom:2px solid #E5E7EB; }
+.preview-content h2 { font-size:22px; font-weight:700; margin:20px 0 10px; color:#1F2937; }
+.preview-content h3 { font-size:18px; font-weight:600; margin:16px 0 8px; color:#374151; }
+.preview-content h4 { font-size:16px; font-weight:600; margin:12px 0 6px; color:#4B5563; }
+.preview-content p { margin:0 0 12px; }
+.preview-content pre { background:#F3F4F6; border:1px solid #E5E7EB; border-radius:8px; padding:14px 16px; overflow-x:auto; font-size:13px; line-height:1.6; margin:12px 0; }
+.preview-content pre code { background:transparent; padding:0; font-size:13px; color:#1F2937; }
+.preview-content code { background:#F3F4F6; padding:2px 6px; border-radius:4px; font-size:13px; color:#DC2626; }
+.preview-content blockquote { margin:12px 0; padding:8px 16px; border-left:4px solid #2563EB; background:#EFF6FF; color:#1E40AF; border-radius:0 6px 6px 0; }
+.preview-content ul, .preview-content ol { margin:8px 0; padding-left:24px; }
+.preview-content li { margin-bottom:4px; }
+.preview-content img.preview-img { max-width:100%; height:auto; border-radius:8px; margin:12px 0; border:1px solid #E5E7EB; display:block; }
+.preview-content a { color:#2563EB; text-decoration:underline; }
+.preview-content a:hover { color:#1D4ED8; }
+.preview-content hr { border:none; border-top:2px solid #E5E7EB; margin:20px 0; }

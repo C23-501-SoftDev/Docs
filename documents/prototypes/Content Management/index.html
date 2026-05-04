@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Content Management</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <h2>Navigation</h2>
+    <ul>
+      <li class="active"><a href="index.html">Dashboard</a></li>
+      <li><a href="wiki-editor.html">Wiki Editor</a></li>
+    </ul>
+  </div>
+  <div class="content">
+    <h1>Content Management</h1>
+    <p>Please select a section from the sidebar.</p>
+    <div style="margin-top:24px; display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px;">
+      <div class="card" style="cursor:pointer;" onclick="location.href='wiki-editor.html'">
+        <h3>Wiki Editor</h3>
+        <p class="meta-info">US1.1.1 — Real-time Markdown preview with two-panel interface</p>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

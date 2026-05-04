@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Wiki Editor — US1.1.1</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <h2>Navigation</h2>
+    <ul>
+      <li><a href="index.html">Dashboard</a></li>
+      <li class="active"><a href="wiki-editor.html">Wiki Editor</a></li>
+    </ul>
+  </div>
+
+  <div class="content" style="padding:0; display:flex; flex-direction:column;">
+    <div class="editor-header">
+      <h1 style="margin:0; font-size:20px;">Document Editor</h1>
+      <div class="editor-actions">
+        <span class="editor-status" id="statusBadge">Draft</span>
+        <button class="button-primary" onclick="showToast('Document saved')">Save</button>
+      </div>
+    </div>
+
+    <div class="editor-layout">
+      <div class="editor-pane">
+        <div class="pane-header">
+          <span class="pane-label">Wiki Markup</span>
+          <span class="pane-hint">Ctrl+S to save</span>
+        </div>
+        <div class="editor-toolbar">
+          <button class="toolbar-btn" onclick="wrapText('**','**')" title="Bold"><strong>B</strong></button>
+          <button class="toolbar-btn" onclick="wrapText('_','_')" title="Italic"><em>I</em></button>
+          <button class="toolbar-btn" onclick="insertAtCursor('\n- ')" title="Bullet list">• List</button>
+          <button class="toolbar-btn" onclick="insertAtCursor('\n1. ')" title="Numbered list">1. List</button>
+          <button class="toolbar-btn" onclick="insertAtCursor('\n```\n')" title="Code block">&lt;/&gt;</button>
+          <button class="toolbar-btn" onclick="insertAtCursor('## ')" title="Heading H2">H2</button>
+          <button class="toolbar-btn" onclick="insertImage()" title="Image">🖼</button>
+        </div>
+        <textarea class="editor-textarea" id="editorTextarea" spellcheck="true" placeholder="Enter Wiki markup here..."></textarea>
+      </div>
+      <div class="preview-pane">
+        <div class="pane-header">
+          <span class="pane-label">Preview</span>
+          <span class="pane-hint">Updates in real time</span>
+        </div>
+        <div class="preview-content" id="previewContent">
+          <p style="color:#9CA3AF;">Loading preview...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Success</div>
+
+<script>
+  window.__INITIAL_CONTENT__ = `# Документация API
+
+## Введение
+
+Данный документ описывает **REST API** для управления контентом.
+
+### Базовый URL
+
+\`\`\`
+https://api.example.com/v1
+\`\`\`
+
+## Эндпоинты
+
+- \`GET /documents\` — получить список документов
+- \`POST /documents\` — создать новый документ
+- \`PUT /documents/{id}\` — обновить документ
+
+### Пример запроса
+
+\`\`\`json
+{
+  "title": "Мой документ",
+  "content": "# Hello World",
+  "status": "Draft"
+}
+\`\`\`
+
+## Форматирование
+
+*Поддерживается* **жирный** текст, \`код\`, списки и изображения:
+
+![Logo](https://placehold.co/600x200/2563EB/FFFFFF?text=Wiki+Preview)
+
+> Примечание: предпросмотр обновляется в реальном времени.`;
+
+  let editor = document.getElementById('editorTextarea');
+  let preview = document.getElementById('previewContent');
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 2000);
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function wrapText(before, after) {
+    const start = editor.selectionStart, end = editor.selectionEnd;
+    const selected = editor.value.substring(start, end);
+    editor.setRangeText(before + selected + after);
+    editor.focus();
+    editor.selectionStart = start + before.length;
+    editor.selectionEnd = start + before.length + selected.length;
+    renderPreview();
+  }
+
+  function insertAtCursor(text) {
+    const start = editor.selectionStart;
+    editor.setRangeText(text);
+    editor.focus();
+    editor.selectionStart = editor.selectionEnd = start + text.length;
+    renderPreview();
+  }
+
+  function insertImage() {
+    const url = prompt('Enter image URL:');
+    if (url) {
+      const alt = prompt('Enter alt text (optional):') || 'image';
+      insertAtCursor(`![${alt}](${url})`);
+    }
+  }
+
+  function renderPreview() {
+    const raw = editor.value;
+
+    let html = '';
+    let inCodeBlock = false;
+    let codeBuffer = [];
+    let inList = false;
+
+    const lines = raw.split('\n');
+
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+
+      if (line.startsWith('```')) {
+        if (inCodeBlock) {
+          html += '<pre><code>' + escapeHtml(codeBuffer.join('\n')) + '</code></pre>\n';
+          codeBuffer = [];
+          inCodeBlock = false;
+        } else {
+          if (inList) { html += '</ul>\n'; inList = false; }
+          inCodeBlock = true;
+        }
+        continue;
+      }
+
+      if (inCodeBlock) {
+        codeBuffer.push(line);
+        continue;
+      }
+
+      let processed = line;
+
+      // blockquote
+      if (/^>\s?/.test(processed)) {
+        if (inList) { html += '</ul>\n'; inList = false; }
+        processed = processed.replace(/^>\s?/, '');
+        processed = parseInline(processed);
+        html += '<blockquote>' + processed + '</blockquote>\n';
+        continue;
+      }
+
+      // headings
+      const headingMatch = processed.match(/^(#{1,6})\s+(.+)$/);
+      if (headingMatch) {
+        if (inList) { html += '</ul>\n'; inList = false; }
+        const level = headingMatch[1].length;
+        const text = parseInline(headingMatch[2]);
+        html += `<h${level}>${text}</h${level}>\n`;
+        continue;
+      }
+
+      // hr
+      if (/^(-{3,}|\*{3,})$/.test(processed.trim())) {
+        if (inList) { html += '</ul>\n'; inList = false; }
+        html += '<hr>\n';
+        continue;
+      }
+
+      // unordered list
+      if (/^[-*+]\s/.test(processed)) {
+        if (!inList) { html += '<ul>\n'; inList = true; }
+        processed = processed.replace(/^[-*+]\s/, '');
+        processed = parseInline(processed);
+        html += '<li>' + processed + '</li>\n';
+        continue;
+      }
+
+      // ordered list
+      if (/^\d+\.\s/.test(processed)) {
+        if (!inList) { html += '<ol>\n'; inList = true; }
+        processed = processed.replace(/^\d+\.\s/, '');
+        processed = parseInline(processed);
+        html += '<li>' + processed + '</li>\n';
+        continue;
+      }
+
+      if (inList) {
+        html += '</ul>\n';
+        inList = false;
+      }
+
+      // empty line
+      if (processed.trim() === '') {
+        html += '\n';
+        continue;
+      }
+
+      // paragraph
+      html += '<p>' + parseInline(processed) + '</p>\n';
+    }
+
+    if (inCodeBlock) {
+      html += '<pre><code>' + escapeHtml(codeBuffer.join('\n')) + '</code></pre>\n';
+    }
+    if (inList) {
+      html += '</ul>\n';
+    }
+
+    preview.innerHTML = html;
+  }
+
+  function parseInline(text) {
+    let result = escapeHtml(text);
+    // images: ![alt](url)
+    result = result.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="preview-img">');
+    // links: [text](url)
+    result = result.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+    // bold **text**
+    result = result.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    // italic *text*
+    result = result.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    // inline code
+    result = result.replace(/`([^`]+)`/g, '<code>$1</code>');
+    return result;
+  }
+
+  function initEditor() {
+    editor.value = window.__INITIAL_CONTENT__ || '';
+    renderPreview();
+  }
+
+  editor.addEventListener('input', renderPreview);
+
+  editor.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      showToast('Document saved');
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initEditor();
+    window.addEventListener('beforeunload', function(e) {
+      e.preventDefault();
+      e.returnValue = '';
+    });
+  });
+</script>
+</body>
+</html>
