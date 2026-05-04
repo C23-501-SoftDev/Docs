@@ -861,6 +861,36 @@
               ]
             },
             "children": []
+          },
+          {
+            "id": "US3.1.4",
+            "type": "UserStory",
+            "title": "Поиск по пользователям",
+            "as_a": "Администратор",
+            "i_want": "искать пользователей по ФИО или логину",
+            "so_that": "быстро находить нужных людей в системе.",
+            "assignees": "chudnik",
+            "complexity": 3,
+            "metadata": {
+              "tags": ["Admin", "Search"],
+              "requirements_check": []
+            },
+            "children": []
+          },
+          {
+            "id": "US3.1.5",
+            "type": "UserStory",
+            "title": "Поиск по пространствам",
+            "as_a": "Пользователь",
+            "i_want": "искать рабочие пространства по их названию",
+            "so_that": "быстро переключаться между проектами.",
+            "assignees": "chudnik",
+            "complexity": 3,
+            "metadata": {
+              "tags": ["Search"],
+              "requirements_check": []
+            },
+            "children": []
           }
         ]
       },
