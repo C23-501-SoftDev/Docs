@@ -469,12 +469,13 @@
       const requirementsMap = new Map();
       const pathsMap = new Map();
 
-      function switchTab(tabName) {
+      function switchTab(tabName, skipUpdateUrl = false) {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         
         document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
         document.getElementById(`tab-${tabName}`).classList.add('active');
+        if (!skipUpdateUrl) updateUrl();
       }
 
       function calculateWorkloadFromData(data) {
@@ -600,19 +601,25 @@
         function renderTagFilter(tags) {
           const filterContainer = document.getElementById('tagFilterContainer');
           filterContainer.innerHTML = '';
+          const urlParams = new URLSearchParams(window.location.search);
+          const selectedTags = urlParams.get('tags') ? urlParams.get('tags').split(',') : [];
+
           tags.forEach(tag => {
             const label = document.createElement('label');
             label.style.marginRight = '10px';
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.value = tag;
+            if (selectedTags.includes(tag)) checkbox.checked = true;
             checkbox.onchange = () => {
               applyTagFilter();
+              updateUrl();
             };
             label.appendChild(checkbox);
             label.appendChild(document.createTextNode(tag));
             filterContainer.appendChild(label);
           });
+          if (selectedTags.length > 0) applyTagFilter();
         }
 
         // Фильтрация по выбранным тегам
@@ -644,15 +651,17 @@
 
         // Собираем теги
         const uniqueTags = collectUniqueTags(data);
-        renderTagFilter(uniqueTags);
-
         backlogData = data;
+        renderTagFilter(uniqueTags);
 
         // Вычисляем нагрузку из данных
         developersWorkload = calculateWorkloadFromData(data);
         renderWorkload();
 
-        renderTree(data, container);
+        const urlParams = new URLSearchParams(window.location.search);
+        if (!urlParams.get('tags')) {
+            renderTree(data, container);
+        }
         } catch (error) {
           container.innerHTML = `<div class="error">Ошибка: ${error.message}<br>Убедитесь, что файл backlog.json находится в той же папке и доступен через веб-сервер.</div>`;
         }
@@ -665,6 +674,7 @@
           (c) => (c.style.display = expand ? "block" : "none"),
         );
         icons.forEach((i) => (i.textContent = expand ? "▼" : "▶"));
+        updateUrl();
       }
 
       function showRequirements(id, title) {
@@ -739,6 +749,55 @@
         container.appendChild(list);
       }
 
+      function updateUrl() {
+        const url = new URL(window.location);
+        
+        // Tab
+        const activeTab = document.querySelector('.tab.active');
+        const tabName = activeTab.getAttribute('onclick').match(/'([^']+)'/)[1];
+        url.searchParams.set('tab', tabName);
+
+        // Tags
+        const checkedTags = Array.from(document.querySelectorAll('#tagFilterContainer input[type=checkbox]:checked')).map(cb => cb.value);
+        if (checkedTags.length > 0) {
+          url.searchParams.set('tags', checkedTags.join(','));
+        } else {
+          url.searchParams.delete('tags');
+        }
+
+        // Collapsed/Expanded states
+        const expandedIds = [];
+        document.querySelectorAll('.children-container').forEach(container => {
+          if (container.style.display !== 'none') {
+            // Find ID of parent node
+            const nodeContent = container.previousElementSibling;
+            const idSpan = nodeContent.querySelector('.id');
+            if (idSpan) {
+              expandedIds.push(idSpan.textContent);
+            }
+          }
+        });
+        if (expandedIds.length > 0) {
+          url.searchParams.set('expanded', expandedIds.join(','));
+        } else {
+          url.searchParams.delete('expanded');
+        }
+
+        window.history.replaceState({}, '', url);
+      }
+
+      function restoreState() {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Restore tab
+        const tab = urlParams.get('tab');
+        if (tab) {
+          switchTab(tab, true);
+        }
+
+        // Expanded state is handled in createNodeElement (via id check)
+      }
+
       function createNodeElement(node, currentPath) {
         const div = document.createElement("div");
         div.className = "node";
@@ -747,8 +806,14 @@
         content.className = "node-content";
 
         const hasChildren = node.children && node.children.length > 0;
+        
+        // Check if expanded from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const expandedIds = urlParams.get('expanded') ? urlParams.get('expanded').split(',') : [];
+        const isInitiallyExpanded = expandedIds.includes(node.id);
+
         const toggleIcon = hasChildren
-          ? `<span class="toggle-icon" style="margin-right: 5px; font-size: 0.8em; color: #95a5a6;">▼</span>`
+          ? `<span class="toggle-icon" style="margin-right: 5px; font-size: 0.8em; color: #95a5a6;">${isInitiallyExpanded ? "▼" : "▶"}</span>`
           : `<span style="margin-right: 17px;"></span>`;
 
         const tagsHtml =
@@ -806,6 +871,7 @@
         if (hasChildren) {
           const childrenContainer = document.createElement("div");
           childrenContainer.className = "children-container";
+          childrenContainer.style.display = isInitiallyExpanded ? "block" : "none";
           node.children.forEach((child) => {
             const childPath = `${currentPath}/${child.id} ${child.title}`;
             pathsMap.set(child.id, childPath);
@@ -819,6 +885,7 @@
             childrenContainer.style.display = isHidden ? "block" : "none";
             const icon = content.querySelector(".toggle-icon");
             if (icon) icon.textContent = isHidden ? "▼" : "▶";
+            updateUrl();
           };
         }
 
@@ -826,6 +893,7 @@
       }
 
       window.onload = function() {
+        restoreState();
         loadBacklog();
       };
     </script>
