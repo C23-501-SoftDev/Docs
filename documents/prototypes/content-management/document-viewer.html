@@ -16,15 +16,39 @@
 <body>
 <div class="layout">
   <div class="sidebar">
-    <h2>Navigation</h2>
-    <ul>
-      <li><a href="index.html">Dashboard</a></li>
-      <li><a href="wiki-editor.html">Wiki Editor</a></li>
-      <li class="active"><a href="documents.html">Documents</a></li>
-    </ul>
+    <div class="space-header">
+      <h2>📦 Пространство</h2>
+      <div class="space-actions">
+        <button onclick="location.href='../admin-panel/spaces.html'" title="Управление пространствами">⚙️</button>
+      </div>
+    </div>
+    <div class="space-selector">
+      <div class="space-search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="spaceSearchInput" placeholder="Выберите пространство..." oninput="onSpaceSearchInput()" onfocus="openSpaceDropdown()" autocomplete="off">
+      </div>
+      <div class="space-dropdown" id="spaceDropdown"></div>
+    </div>
+    <div class="sidebar-search">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="treeSearchInput" placeholder="Поиск в дереве..." oninput="onTreeSearch()" autocomplete="off">
+    </div>
+    <div class="tree-nav" id="treeNav">
+      <div class="tree-empty">Выберите пространство</div>
+    </div>
   </div>
 
   <div class="content">
+    <div class="header">
+      <div class="search-bar">
+        <div class="search-input-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="globalSearchInput" placeholder="Поиск документов по названию..." oninput="debounceSearch()" autocomplete="off">
+          <div class="search-results-panel" id="searchResultsPanel"></div>
+        </div>
+      </div>
+    </div>
+
     <div class="viewer-back">
       <a href="documents.html">&larr; Вернуться к списку документов</a>
     </div>
@@ -90,6 +114,45 @@
 
 <script>
   let currentDocId = null;
+  let searchDebounceTimer = null;
+  let selectedSpace = 'Project Alpha';
+
+  const spaceList = [
+    { name: 'Project Alpha', owner: 'johndoe' },
+    { name: 'Project Beta', owner: 'alice' },
+    { name: 'Knowledge Base', owner: 'bob' }
+  ];
+
+  const spaceContents = {
+    'Project Alpha': {
+      groups: {
+        'Архитектура': [
+          { name: 'Architecture Overview', id: 2 },
+          { name: 'Security Policy', id: 7 }
+        ]
+      },
+      docs: [
+        { name: 'API Documentation', id: 1 }
+      ]
+    },
+    'Project Beta': {
+      groups: {
+        'Тестирование': [
+          { name: 'Testing Strategy', id: 4 }
+        ]
+      },
+      docs: [
+        { name: 'Deployment Guide', id: 5 }
+      ]
+    },
+    'Knowledge Base': {
+      groups: {},
+      docs: [
+        { name: 'Development Setup', id: 3 },
+        { name: 'User Manual v2', id: 6 }
+      ]
+    }
+  };
 
   const sampleAttachments = [
     { name: 'architecture-diagram.png', size: '2.4 MB', icon: '🖼' },
@@ -105,14 +168,159 @@
   }
 
   function escapeHtml(str) {
-    return String(str).replace(/[&<>]/g, function(m){
-      if (m === '&') return '&amp;';
-      if (m === '<') return '&lt;';
-      if (m === '>') return '&gt;';
-      return m;
+    return String(str).replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m;
     });
   }
 
+  // --- Space Selector ---
+  function renderSpaceDropdown(filterText) {
+    const dropdown = document.getElementById('spaceDropdown');
+    const filter = (filterText || '').toLowerCase();
+    const filtered = filter ? spaceList.filter(s => s.name.toLowerCase().includes(filter)) : spaceList;
+    if (filtered.length === 0) {
+      dropdown.innerHTML = '<div class="space-option-empty">Пространства не найдены</div>';
+    } else {
+      dropdown.innerHTML = filtered.map(s =>
+        `<div class="space-option ${s.name === selectedSpace ? 'active' : ''}" onclick="selectSpace('${escapeHtml(s.name)}')">📁 ${escapeHtml(s.name)}</div>`
+      ).join('');
+    }
+  }
+
+  function openSpaceDropdown() {
+    document.getElementById('spaceDropdown').classList.add('open');
+    renderSpaceDropdown(document.getElementById('spaceSearchInput').value);
+  }
+
+  function closeSpaceDropdown() {
+    document.getElementById('spaceDropdown').classList.remove('open');
+  }
+
+  function onSpaceSearchInput() {
+    renderSpaceDropdown(document.getElementById('spaceSearchInput').value);
+    document.getElementById('spaceDropdown').classList.add('open');
+  }
+
+  function selectSpace(name) {
+    selectedSpace = name;
+    document.getElementById('spaceSearchInput').value = name;
+    document.getElementById('treeSearchInput').value = '';
+    closeSpaceDropdown();
+    renderTree('');
+  }
+
+  // --- Tree ---
+  function renderTree(filterText) {
+    const container = document.getElementById('treeNav');
+    const content = spaceContents[selectedSpace];
+    if (!content) { container.innerHTML = '<div class="tree-empty">Нет данных</div>'; return; }
+
+    const ft = (filterText || '').toLowerCase().trim();
+    let html = '';
+    let hasVisible = false;
+
+    const groupEntries = Object.entries(content.groups);
+    groupEntries.forEach(([groupName, docs]) => {
+      const filteredDocs = ft ? docs.filter(d => d.name.toLowerCase().includes(ft)) : docs;
+      const groupMatch = !ft || groupName.toLowerCase().includes(ft);
+      if (!groupMatch && filteredDocs.length === 0) return;
+      hasVisible = true;
+      const groupOpen = groupMatch || filteredDocs.length > 0;
+
+      html += '<div class="tree-item group">';
+      html += `<div class="tree-row" onclick="toggleGroup('${escapeHtml(groupName)}')">`;
+      html += `<span class="tree-toggle-icon ${groupOpen ? 'expanded' : ''}">▶</span>`;
+      html += `<span class="tree-icon">📂</span>`;
+      html += `<span class="tree-name">${escapeHtml(groupName)}</span>`;
+      html += '</div>';
+      html += `<div class="tree-children ${groupOpen ? 'expanded' : ''}" data-group="${escapeHtml(groupName)}">`;
+      (groupMatch ? docs : filteredDocs).forEach(doc => {
+        const isActive = doc.id === currentDocId;
+        const match = doc.name.toLowerCase().includes(ft);
+        html += '<div class="tree-item doc">';
+        html += `<div class="tree-row ${isActive ? 'active' : ''}${!match && ft ? ' faded' : ''}" onclick="openDoc(${doc.id})">`;
+        html += `<span class="tree-icon">📄</span>`;
+        html += `<span class="tree-name">${escapeHtml(doc.name)}</span>`;
+        html += '</div></div>';
+      });
+      html += '</div></div>';
+    });
+
+    if (content.docs.length > 0) {
+      const filteredDocs = ft ? content.docs.filter(d => d.name.toLowerCase().includes(ft)) : content.docs;
+      if (filteredDocs.length > 0) hasVisible = true;
+      filteredDocs.forEach(doc => {
+        const isActive = doc.id === currentDocId;
+        html += '<div class="tree-item doc" style="padding-left:8px;">';
+        html += `<div class="tree-row ${isActive ? 'active' : ''}" onclick="openDoc(${doc.id})">`;
+        html += `<span class="tree-icon">📄</span>`;
+        html += `<span class="tree-name">${escapeHtml(doc.name)}</span>`;
+        html += '</div></div>';
+      });
+    }
+
+    container.innerHTML = hasVisible ? html : '<div class="tree-empty">Ничего не найдено</div>';
+  }
+
+  function onTreeSearch() {
+    renderTree(document.getElementById('treeSearchInput').value);
+  }
+
+  function toggleGroup(groupName) {
+    const children = document.querySelector(`.tree-children[data-group="${CSS.escape(groupName)}"]`);
+    if (children) {
+      children.classList.toggle('expanded');
+      const icon = children.previousElementSibling?.querySelector('.tree-toggle-icon');
+      if (icon) icon.classList.toggle('expanded');
+    }
+  }
+
+  function openDoc(id) { location.href = 'document-viewer.html?docId=' + id; }
+
+  // --- Search ---
+  function debounceSearch() {
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(performSearch, 300);
+  }
+
+  function performSearch() {
+    const query = document.getElementById('globalSearchInput').value.trim().toLowerCase();
+    const panel = document.getElementById('searchResultsPanel');
+    if (!query || query.length < 2) { panel.classList.remove('open'); return; }
+
+    const stored = sessionStorage.getItem('documentsData');
+    let docs = [];
+    if (stored) { try { docs = JSON.parse(stored); } catch(e) {} }
+    if (docs.length === 0) {
+      docs = [
+        { id: 1, title: 'API Documentation', space: 'Project Alpha', author: 'johndoe', status: 'Published', updated: '2025-04-28' },
+        { id: 2, title: 'Architecture Overview', space: 'Project Alpha', author: 'alice', status: 'Published', updated: '2025-04-25' },
+        { id: 3, title: 'Development Setup', space: 'Knowledge Base', author: 'bob', status: 'Draft', updated: '2025-05-01' },
+        { id: 4, title: 'Testing Strategy', space: 'Project Beta', author: 'alice', status: 'Draft', updated: '2025-04-30' },
+        { id: 5, title: 'Deployment Guide', space: 'Project Beta', author: 'charlie', status: 'Published', updated: '2025-04-20' },
+        { id: 7, title: 'Security Policy', space: 'Project Alpha', author: 'charlie', status: 'Published', updated: '2025-04-29' }
+      ];
+    }
+
+    const results = docs.filter(d => d.title.toLowerCase().includes(query) && d.status !== 'Deleted').slice(0, 10);
+
+    if (results.length === 0) {
+      panel.innerHTML = '<div class="search-result-empty">Документы не найдены</div>';
+    } else {
+      panel.innerHTML = results.map(r =>
+        '<div class="search-result-item" onclick="location.href=\'document-viewer.html?docId=' + r.id + '\'">' +
+          '<span class="result-icon">📄</span>' +
+          '<div class="result-info">' +
+            '<div class="result-title">' + escapeHtml(r.title) + '</div>' +
+            '<div class="result-meta">' + escapeHtml(r.space) + ' · ' + escapeHtml(r.author) + ' · ' + r.updated + '</div>' +
+          '</div>' +
+        '</div>'
+      ).join('');
+    }
+    panel.classList.add('open');
+  }
+
+  // --- Document Viewer ---
   function parseInline(text) {
     let result = escapeHtml(text);
     result = result.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="preview-img">');
@@ -178,13 +386,17 @@
   }
 
   function loadDocument(docId) {
+    currentDocId = docId;
     const stored = sessionStorage.getItem('documentsData');
     if (!stored) { showError(); return; }
     let data;
     try { data = JSON.parse(stored); } catch(e) { showError(); return; }
     const doc = data.find(d => d.id === docId);
     if (!doc) { showError(); return; }
-    currentDocId = docId;
+
+    selectedSpace = doc.space;
+    document.getElementById('spaceSearchInput').value = selectedSpace;
+
     document.getElementById('viewerLoading').style.display = 'none';
     document.getElementById('viewerContent').style.display = 'block';
     document.getElementById('viewBreadcrumbSpace').textContent = doc.space;
@@ -196,6 +408,8 @@
     document.getElementById('viewDocContent').innerHTML = contentHtml || '<p style="color:#9CA3AF;">(пусто)</p>';
     updateViewRole();
     renderAttachments();
+    document.getElementById('treeSearchInput').value = '';
+    renderTree('');
   }
 
   function showError() {
@@ -233,9 +447,7 @@
   }
 
   function editDocument() {
-    if (currentDocId) {
-      location.href = 'wiki-editor.html?docId=' + currentDocId;
-    }
+    if (currentDocId) { location.href = 'wiki-editor.html?docId=' + currentDocId; }
   }
 
   function deleteDocument() {
@@ -276,8 +488,15 @@
     if (docId) {
       loadDocument(Number(docId));
     } else {
+      renderTree('');
       showError();
     }
+
+    document.addEventListener('click', (e) => {
+      const panel = document.getElementById('searchResultsPanel');
+      if (!e.target.closest('.search-bar')) panel.classList.remove('open');
+      if (!e.target.closest('.space-selector')) closeSpaceDropdown();
+    });
   });
 </script>
 </body>

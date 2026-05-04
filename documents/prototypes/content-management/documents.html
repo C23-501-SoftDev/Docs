@@ -10,12 +10,26 @@
 <body>
   <div class="layout">
     <div class="sidebar">
-      <h2>Navigation</h2>
-      <ul>
-        <li><a href="index.html">Dashboard</a></li>
-        <li><a href="wiki-editor.html">Wiki Editor</a></li>
-        <li class="active"><a href="documents.html">Documents</a></li>
-      </ul>
+      <div class="space-header">
+        <h2>📦 Пространство</h2>
+        <div class="space-actions">
+          <button onclick="location.href='../admin-panel/spaces.html'" title="Управление пространствами">⚙️</button>
+        </div>
+      </div>
+      <div class="space-selector">
+        <div class="space-search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="spaceSearchInput" placeholder="Выберите пространство..." oninput="onSpaceSearchInput()" onfocus="openSpaceDropdown()" autocomplete="off">
+        </div>
+        <div class="space-dropdown" id="spaceDropdown"></div>
+      </div>
+      <div class="sidebar-search">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="treeSearchInput" placeholder="Поиск в дереве..." oninput="onTreeSearch()" autocomplete="off">
+      </div>
+      <div class="tree-nav" id="treeNav">
+        <div class="tree-empty">Выберите пространство</div>
+      </div>
     </div>
 
     <div class="content">
@@ -30,7 +44,17 @@
             <label>Search</label>
             <input type="text" id="searchInput" placeholder="Search by title...">
           </div>
-          <div class="filter-group" style="min-width:160px;">
+          <div class="date-filter-group">
+            <div class="filter-group">
+              <label>Date From</label>
+              <input type="date" id="dateFromInput">
+            </div>
+            <div class="filter-group">
+              <label>Date To</label>
+              <input type="date" id="dateToInput">
+            </div>
+          </div>
+          <div class="filter-group" style="min-width:140px;">
             <label>Status</label>
             <select id="statusFilter">
               <option value="">All</option>
@@ -88,7 +112,7 @@
     </div>
   </div>
 
-  <!-- Create Modal (metadata only) -->
+  <!-- Create Modal -->
   <div class="modal" id="createModal">
     <div class="modal-content" style="width:480px;">
       <h3>Create Document</h3>
@@ -117,7 +141,7 @@
     </div>
   </div>
 
-  <!-- Properties Modal (edit metadata) -->
+  <!-- Properties Modal -->
   <div class="modal" id="propertiesModal">
     <div class="modal-content" style="width:480px;">
       <h3>Document Properties</h3>
@@ -176,7 +200,46 @@
       { id: 7, title: 'Security Policy', space: 'Project Alpha', author: 'charlie', content: '# Security\n\n## Access control\n...', status: 'Published', updated: '2025-04-29' }
     ];
 
-    let documentsState = { sortKey: 'id', sortDir: 'asc', page: 1, rowsPerPage: 10, searchTerm: '', statusFilter: '', spaceFilter: '' };
+    let selectedSpace = 'Project Alpha';
+
+    const spaceList = [
+      { name: 'Project Alpha', owner: 'johndoe' },
+      { name: 'Project Beta', owner: 'alice' },
+      { name: 'Knowledge Base', owner: 'bob' }
+    ];
+
+    const spaceContents = {
+      'Project Alpha': {
+        groups: {
+          'Архитектура': [
+            { name: 'Architecture Overview', id: 2 },
+            { name: 'Security Policy', id: 7 }
+          ]
+        },
+        docs: [
+          { name: 'API Documentation', id: 1 }
+        ]
+      },
+      'Project Beta': {
+        groups: {
+          'Тестирование': [
+            { name: 'Testing Strategy', id: 4 }
+          ]
+        },
+        docs: [
+          { name: 'Deployment Guide', id: 5 }
+        ]
+      },
+      'Knowledge Base': {
+        groups: {},
+        docs: [
+          { name: 'Development Setup', id: 3 },
+          { name: 'User Manual v2', id: 6 }
+        ]
+      }
+    };
+
+    let documentsState = { sortKey: 'id', sortDir: 'asc', page: 1, rowsPerPage: 10, searchTerm: '', dateFrom: '', dateTo: '', statusFilter: '', spaceFilter: '' };
     let propertiesDocId = null;
     let pendingDeleteId = null;
 
@@ -189,11 +252,117 @@
 
     function escapeHtml(str) { return String(str).replace(/[&<>]/g, function (m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
 
+    // --- Space Selector ---
+    function renderSpaceDropdown(filterText) {
+      const dropdown = document.getElementById('spaceDropdown');
+      const filter = (filterText || '').toLowerCase();
+      const filtered = filter ? spaceList.filter(s => s.name.toLowerCase().includes(filter)) : spaceList;
+
+      if (filtered.length === 0) {
+        dropdown.innerHTML = '<div class="space-option-empty">Пространства не найдены</div>';
+      } else {
+        dropdown.innerHTML = filtered.map(s =>
+          `<div class="space-option ${s.name === selectedSpace ? 'active' : ''}" onclick="selectSpace('${escapeHtml(s.name)}')">📁 ${escapeHtml(s.name)}</div>`
+        ).join('');
+      }
+    }
+
+    function openSpaceDropdown() {
+      document.getElementById('spaceDropdown').classList.add('open');
+      renderSpaceDropdown(document.getElementById('spaceSearchInput').value);
+    }
+
+    function closeSpaceDropdown() {
+      document.getElementById('spaceDropdown').classList.remove('open');
+    }
+
+    function onSpaceSearchInput() {
+      renderSpaceDropdown(document.getElementById('spaceSearchInput').value);
+      document.getElementById('spaceDropdown').classList.add('open');
+    }
+
+    function selectSpace(name) {
+      selectedSpace = name;
+      document.getElementById('spaceSearchInput').value = name;
+      document.getElementById('treeSearchInput').value = '';
+      closeSpaceDropdown();
+      renderTree('');
+    }
+
+    // --- Tree ---
+    function renderTree(filterText) {
+      const container = document.getElementById('treeNav');
+      const content = spaceContents[selectedSpace];
+      if (!content) { container.innerHTML = '<div class="tree-empty">Нет данных</div>'; return; }
+
+      const ft = (filterText || '').toLowerCase().trim();
+      let html = '';
+      let hasVisible = false;
+
+      const groupEntries = Object.entries(content.groups);
+      groupEntries.forEach(([groupName, docs]) => {
+        const filteredDocs = ft ? docs.filter(d => d.name.toLowerCase().includes(ft)) : docs;
+        const groupMatch = !ft || groupName.toLowerCase().includes(ft);
+        if (!groupMatch && filteredDocs.length === 0) return;
+        hasVisible = true;
+        const groupOpen = groupMatch || filteredDocs.length > 0;
+
+        html += '<div class="tree-item group">';
+        html += `<div class="tree-row" onclick="toggleGroup('${escapeHtml(groupName)}')">`;
+        html += `<span class="tree-toggle-icon ${groupOpen ? 'expanded' : ''}">▶</span>`;
+        html += `<span class="tree-icon">📂</span>`;
+        html += `<span class="tree-name">${escapeHtml(groupName)}</span>`;
+        html += '</div>';
+        html += `<div class="tree-children ${groupOpen ? 'expanded' : ''}" data-group="${escapeHtml(groupName)}">`;
+        (groupMatch ? docs : filteredDocs).forEach(doc => {
+          const match = doc.name.toLowerCase().includes(ft);
+          html += '<div class="tree-item doc">';
+          html += `<div class="tree-row${match ? '' : ' faded'}" onclick="openDoc(${doc.id})">`;
+          html += `<span class="tree-icon">📄</span>`;
+          html += `<span class="tree-name">${escapeHtml(doc.name)}</span>`;
+          html += '</div></div>';
+        });
+        html += '</div></div>';
+      });
+
+      if (content.docs.length > 0) {
+        const filteredDocs = ft ? content.docs.filter(d => d.name.toLowerCase().includes(ft)) : content.docs;
+        if (filteredDocs.length > 0) hasVisible = true;
+        filteredDocs.forEach(doc => {
+          html += '<div class="tree-item doc" style="padding-left:8px;">';
+          html += `<div class="tree-row" onclick="openDoc(${doc.id})">`;
+          html += `<span class="tree-icon">📄</span>`;
+          html += `<span class="tree-name">${escapeHtml(doc.name)}</span>`;
+          html += '</div></div>';
+        });
+      }
+
+      container.innerHTML = hasVisible ? html : '<div class="tree-empty">Ничего не найдено</div>';
+    }
+
+    function onTreeSearch() {
+      renderTree(document.getElementById('treeSearchInput').value);
+    }
+
+    function toggleGroup(groupName) {
+      const children = document.querySelector(`.tree-children[data-group="${CSS.escape(groupName)}"]`);
+      if (children) {
+        children.classList.toggle('expanded');
+        const icon = children.previousElementSibling?.querySelector('.tree-toggle-icon');
+        if (icon) icon.classList.toggle('expanded');
+      }
+    }
+
+    function openDoc(id) { location.href = 'document-viewer.html?docId=' + id; }
+
+    // --- Document CRUD ---
     function getFilteredDocuments() {
       return documentsData.filter(doc => {
         if (documentsState.searchTerm && !doc.title.toLowerCase().includes(documentsState.searchTerm)) return false;
         if (documentsState.statusFilter && doc.status !== documentsState.statusFilter) return false;
         if (documentsState.spaceFilter && doc.space !== documentsState.spaceFilter) return false;
+        if (documentsState.dateFrom && doc.updated < documentsState.dateFrom) return false;
+        if (documentsState.dateTo && doc.updated > documentsState.dateTo) return false;
         return true;
       });
     }
@@ -247,15 +416,11 @@
       if (activeTh) activeTh.classList.add(`sort-${documentsState.sortDir}`);
     }
 
-    function persistToSession() {
-      sessionStorage.setItem('documentsData', JSON.stringify(documentsData));
-    }
+    function persistToSession() { sessionStorage.setItem('documentsData', JSON.stringify(documentsData)); }
 
     function loadFromSession() {
       const stored = sessionStorage.getItem('documentsData');
-      if (stored) {
-        try { documentsData = JSON.parse(stored); } catch (e) { }
-      }
+      if (stored) { try { documentsData = JSON.parse(stored); } catch (e) {} }
     }
 
     function openCreateModal() {
@@ -280,10 +445,7 @@
       location.href = 'wiki-editor.html?docId=' + newId;
     }
 
-    function openEditor(id) {
-      persistToSession();
-      location.href = 'wiki-editor.html?docId=' + id;
-    }
+    function openEditor(id) { persistToSession(); location.href = 'wiki-editor.html?docId=' + id; }
 
     function openProperties(id) {
       const doc = documentsData.find(d => d.id === id);
@@ -328,8 +490,7 @@
       const idx = documentsData.findIndex(d => d.id === pendingDeleteId);
       if (idx !== -1) {
         documentsData[idx].status = 'Deleted';
-        const title = documentsData[idx].title;
-        showToast(`Document "${title}" moved to trash (soft-delete)`);
+        showToast(`Document "${documentsData[idx].title}" moved to trash (soft-delete)`);
         renderDocuments();
       }
       document.getElementById('deleteModal').style.display = 'none';
@@ -337,6 +498,12 @@
 
     function applyFilters() {
       documentsState.searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+      documentsState.dateFrom = document.getElementById('dateFromInput').value;
+      documentsState.dateTo = document.getElementById('dateToInput').value;
+      if (documentsState.dateFrom && documentsState.dateTo && documentsState.dateFrom > documentsState.dateTo) {
+        showToast('Дата начала не может быть позже даты окончания');
+        return;
+      }
       documentsState.statusFilter = document.getElementById('statusFilter').value;
       documentsState.spaceFilter = document.getElementById('spaceFilter').value;
       documentsState.page = 1;
@@ -346,9 +513,13 @@
 
     function clearFilters() {
       document.getElementById('searchInput').value = '';
+      document.getElementById('dateFromInput').value = '';
+      document.getElementById('dateToInput').value = '';
       document.getElementById('statusFilter').value = '';
       document.getElementById('spaceFilter').value = '';
       documentsState.searchTerm = '';
+      documentsState.dateFrom = '';
+      documentsState.dateTo = '';
       documentsState.statusFilter = '';
       documentsState.spaceFilter = '';
       documentsState.page = 1;
@@ -358,6 +529,9 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       loadFromSession();
+      document.getElementById('spaceSearchInput').value = selectedSpace;
+      renderSpaceDropdown('');
+      renderTree('');
       renderDocuments();
 
       document.querySelectorAll('#documentsTable th[data-sort]').forEach(th => {
@@ -394,6 +568,7 @@
       document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
 
       window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
+      document.addEventListener('click', (e) => { if (!e.target.closest('.space-selector')) closeSpaceDropdown(); });
     });
   </script>
 </body>
