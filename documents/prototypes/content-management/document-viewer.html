@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Document Viewer — US1.1.5</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .viewer-back { margin-bottom:8px; }
+    .viewer-back a { text-decoration:none; color:#6B7280; font-size:14px; }
+    .viewer-back a:hover { color:#2563EB; }
+    .viewer-loading { text-align:center; padding:48px; color:#9CA3AF; }
+    .viewer-error { text-align:center; padding:48px; color:#DC2626; }
+    .viewer-error p { margin-bottom:16px; }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <h2>Navigation</h2>
+    <ul>
+      <li><a href="index.html">Dashboard</a></li>
+      <li><a href="wiki-editor.html">Wiki Editor</a></li>
+      <li class="active"><a href="documents.html">Documents</a></li>
+    </ul>
+  </div>
+
+  <div class="content">
+    <div class="viewer-back">
+      <a href="documents.html">&larr; Вернуться к списку документов</a>
+    </div>
+
+    <div class="role-toggle">
+      <label>Просмотр от лица:</label>
+      <select id="roleSelector" onchange="updateViewRole()">
+        <option value="reader">Читатель (Reader)</option>
+        <option value="editor">Редактор (Editor / Автор)</option>
+      </select>
+      <span style="font-size:12px;color:#9CA3AF;">— кнопки действий меняются в зависимости от роли</span>
+    </div>
+
+    <div id="viewerContent" style="display:none;">
+      <div class="doc-view-breadcrumbs" id="viewBreadcrumbs">
+        <a href="index.html">Главная</a>
+        <span class="separator">›</span>
+        <span id="viewBreadcrumbSpace">—</span>
+        <span class="separator">›</span>
+        <span id="viewBreadcrumbCurrent">—</span>
+      </div>
+
+      <div class="doc-view-header">
+        <div class="doc-view-title">
+          <span id="viewDocTitle">—</span>
+          <span class="badge published" id="viewStatusBadge" style="display:none;">Published</span>
+        </div>
+        <div class="doc-view-meta">
+          <span class="meta-item">Автор: <strong id="viewDocAuthor">—</strong></span>
+          <span class="meta-item">Обновлено: <strong id="viewDocUpdated">—</strong></span>
+        </div>
+      </div>
+
+      <div class="doc-view-actions" id="viewActions">
+        <button class="button-primary" id="viewEditBtn" style="display:none;" onclick="editDocument()">Редактировать</button>
+        <button class="button-secondary" id="viewHistoryBtn" onclick="alert('История версий (US1.2.1) — в разработке')">История версий</button>
+        <button class="button-secondary" id="viewExportBtn" onclick="alert('Экспорт (US1.1.4) — в разработке')">Экспорт</button>
+        <button class="button-danger" id="viewDeleteBtn" style="display:none;" onclick="deleteDocument()">Удалить</button>
+      </div>
+
+      <div class="preview-content" id="viewDocContent">
+        <p style="color:#9CA3AF;">Загрузка содержимого...</p>
+      </div>
+
+      <div class="doc-view-attachments" id="viewAttachmentsBlock" style="display:none;">
+        <h3>Вложения</h3>
+        <div id="viewAttachmentList"></div>
+      </div>
+    </div>
+
+    <div class="viewer-loading" id="viewerLoading">
+      <p>Загрузка документа...</p>
+    </div>
+
+    <div class="viewer-error" id="viewerError" style="display:none;">
+      <p>Документ не найден.</p>
+      <a href="documents.html" class="button-primary" style="text-decoration:none; display:inline-block;">Вернуться к списку</a>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Success</div>
+
+<script>
+  let currentDocId = null;
+
+  const sampleAttachments = [
+    { name: 'architecture-diagram.png', size: '2.4 MB', icon: '🖼' },
+    { name: 'api-specification-v2.pdf', size: '1.1 MB', icon: '📄' },
+    { name: 'data-model.sql', size: '8 KB', icon: '📝' }
+  ];
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 2000);
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>]/g, function(m){
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    });
+  }
+
+  function parseInline(text) {
+    let result = escapeHtml(text);
+    result = result.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="preview-img">');
+    result = result.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+    result = result.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    result = result.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    result = result.replace(/`([^`]+)`/g, '<code>$1</code>');
+    return result;
+  }
+
+  function renderWikiToHtml(raw) {
+    let html = '';
+    let inCodeBlock = false, codeBuffer = [], inList = false;
+    const lines = raw.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+      if (line.startsWith('```')) {
+        if (inCodeBlock) {
+          html += '<pre><code>' + escapeHtml(codeBuffer.join('\n')) + '</code></pre>\n';
+          codeBuffer = []; inCodeBlock = false;
+        } else {
+          if (inList) { html += '</ul>\n'; inList = false; }
+          inCodeBlock = true;
+        }
+        continue;
+      }
+      if (inCodeBlock) { codeBuffer.push(line); continue; }
+      let processed = line;
+      if (/^>\s?/.test(processed)) {
+        if (inList) { html += '</ul>\n'; inList = false; }
+        processed = parseInline(processed.replace(/^>\s?/, ''));
+        html += '<blockquote>' + processed + '</blockquote>\n';
+        continue;
+      }
+      const headingMatch = processed.match(/^(#{1,6})\s+(.+)$/);
+      if (headingMatch) {
+        if (inList) { html += '</ul>\n'; inList = false; }
+        html += '<h' + headingMatch[1].length + '>' + parseInline(headingMatch[2]) + '</h' + headingMatch[1].length + '>\n';
+        continue;
+      }
+      if (/^(-{3,}|\*{3,})$/.test(processed.trim())) {
+        if (inList) { html += '</ul>\n'; inList = false; }
+        html += '<hr>\n';
+        continue;
+      }
+      if (/^[-*+]\s/.test(processed)) {
+        if (!inList) { html += '<ul>\n'; inList = true; }
+        html += '<li>' + parseInline(processed.replace(/^[-*+]\s/, '')) + '</li>\n';
+        continue;
+      }
+      if (/^\d+\.\s/.test(processed)) {
+        if (!inList) { html += '<ol>\n'; inList = true; }
+        html += '<li>' + parseInline(processed.replace(/^\d+\.\s/, '')) + '</li>\n';
+        continue;
+      }
+      if (inList) { html += '</ul>\n'; inList = false; }
+      if (processed.trim() === '') { html += '\n'; continue; }
+      html += '<p>' + parseInline(processed) + '</p>\n';
+    }
+    if (inCodeBlock) html += '<pre><code>' + escapeHtml(codeBuffer.join('\n')) + '</code></pre>\n';
+    if (inList) html += '</ul>\n';
+    return html;
+  }
+
+  function loadDocument(docId) {
+    const stored = sessionStorage.getItem('documentsData');
+    if (!stored) { showError(); return; }
+    let data;
+    try { data = JSON.parse(stored); } catch(e) { showError(); return; }
+    const doc = data.find(d => d.id === docId);
+    if (!doc) { showError(); return; }
+    currentDocId = docId;
+    document.getElementById('viewerLoading').style.display = 'none';
+    document.getElementById('viewerContent').style.display = 'block';
+    document.getElementById('viewBreadcrumbSpace').textContent = doc.space;
+    document.getElementById('viewBreadcrumbCurrent').textContent = doc.title;
+    document.getElementById('viewDocTitle').textContent = doc.title;
+    document.getElementById('viewDocAuthor').textContent = doc.author;
+    document.getElementById('viewDocUpdated').textContent = doc.updated;
+    const contentHtml = renderWikiToHtml(doc.content || '');
+    document.getElementById('viewDocContent').innerHTML = contentHtml || '<p style="color:#9CA3AF;">(пусто)</p>';
+    updateViewRole();
+    renderAttachments();
+  }
+
+  function showError() {
+    document.getElementById('viewerLoading').style.display = 'none';
+    document.getElementById('viewerError').style.display = 'block';
+  }
+
+  function updateViewRole() {
+    const role = document.getElementById('roleSelector').value;
+    const editBtn = document.getElementById('viewEditBtn');
+    const deleteBtn = document.getElementById('viewDeleteBtn');
+    const statusBadge = document.getElementById('viewStatusBadge');
+    if (role === 'editor') {
+      editBtn.style.display = 'inline-block';
+      deleteBtn.style.display = 'inline-block';
+      if (currentDocId) {
+        const stored = sessionStorage.getItem('documentsData');
+        if (stored) {
+          try {
+            const data = JSON.parse(stored);
+            const doc = data.find(d => d.id === currentDocId);
+            if (doc) {
+              statusBadge.style.display = 'inline-block';
+              statusBadge.className = 'badge ' + doc.status.toLowerCase();
+              statusBadge.textContent = doc.status;
+            }
+          } catch(e) {}
+        }
+      }
+    } else {
+      editBtn.style.display = 'none';
+      deleteBtn.style.display = 'none';
+      statusBadge.style.display = 'none';
+    }
+  }
+
+  function editDocument() {
+    if (currentDocId) {
+      location.href = 'wiki-editor.html?docId=' + currentDocId;
+    }
+  }
+
+  function deleteDocument() {
+    if (!currentDocId) return;
+    const stored = sessionStorage.getItem('documentsData');
+    if (!stored) return;
+    try {
+      const data = JSON.parse(stored);
+      const doc = data.find(d => d.id === currentDocId);
+      if (!doc) return;
+      if (confirm('Вы уверены, что хотите удалить документ "' + doc.title + '"?')) {
+        doc.status = 'Deleted';
+        doc.updated = new Date().toISOString().slice(0, 10);
+        sessionStorage.setItem('documentsData', JSON.stringify(data));
+        showToast('Документ "' + doc.title + '" перемещён в корзину');
+        setTimeout(() => { location.href = 'documents.html'; }, 800);
+      }
+    } catch(e) {}
+  }
+
+  function renderAttachments() {
+    const block = document.getElementById('viewAttachmentsBlock');
+    const list = document.getElementById('viewAttachmentList');
+    block.style.display = 'block';
+    list.innerHTML = sampleAttachments.map(a =>
+      '<div class="attachment-item">' +
+        '<span class="file-icon">' + a.icon + '</span>' +
+        '<span class="file-name">' + a.name + '</span>' +
+        '<span class="file-size">' + a.size + '</span>' +
+        '<button class="button-secondary" style="padding:4px 8px; font-size:12px;" onclick="alert(\'Скачивание: ' + a.name + '\')">Скачать</button>' +
+      '</div>'
+    ).join('');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const docId = params.get('docId');
+    if (docId) {
+      loadDocument(Number(docId));
+    } else {
+      showError();
+    }
+  });
+</script>
+</body>
+</html>
