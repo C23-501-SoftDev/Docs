@@ -451,6 +451,10 @@
 
     <!-- Вкладка "Иерархия бэклога" -->
     <div id="tab-backlog" class="tab-content active">
+      <div style="margin-bottom: 15px;">
+        <strong>Фильтр по тегам:</strong>
+        <div id="tagFilterContainer" style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px;"></div>
+      </div>
       <div id="backlog" class="backlog-container">Загрузка данных...</div>
     </div>
 
@@ -577,13 +581,78 @@
           if (!response.ok)
             throw new Error("Не удалось загрузить backlog.json");
           const data = await response.json();
-          backlogData = data;
-          
-          // Вычисляем нагрузку из данных
-          developersWorkload = calculateWorkloadFromData(data);
-          renderWorkload();
+        // Собираем уникальные теги из backlog
+        function collectUniqueTags(data) {
+          const tagsSet = new Set();
+          function collectTags(node) {
+            if (node.metadata && node.metadata.tags && Array.isArray(node.metadata.tags)) {
+              node.metadata.tags.forEach(tag => tagsSet.add(tag));
+            }
+            if (node.children) {
+              node.children.forEach(collectTags);
+            }
+          }
+          data.forEach(collectTags);
+          return Array.from(tagsSet).sort();
+        }
 
-          renderTree(data, container);
+        // Создаем UI фильтра по тегам
+        function renderTagFilter(tags) {
+          const filterContainer = document.getElementById('tagFilterContainer');
+          filterContainer.innerHTML = '';
+          tags.forEach(tag => {
+            const label = document.createElement('label');
+            label.style.marginRight = '10px';
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = tag;
+            checkbox.onchange = () => {
+              applyTagFilter();
+            };
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(tag));
+            filterContainer.appendChild(label);
+          });
+        }
+
+        // Фильтрация по выбранным тегам
+        function applyTagFilter() {
+          const checkedTags = Array.from(document.querySelectorAll('#tagFilterContainer input[type=checkbox]:checked')).map(cb => cb.value);
+          if (checkedTags.length === 0) {
+            renderTree(backlogData, document.getElementById('backlog'));
+            return;
+          }
+          function filterNodes(nodes) {
+            const filtered = [];
+            nodes.forEach(node => {
+              // Проверяем теги в node
+              const nodeTags = node.metadata && node.metadata.tags ? node.metadata.tags : [];
+              // Рекурсивно фильтруем детей
+              const filteredChildren = node.children ? filterNodes(node.children) : [];
+              const hasTag = nodeTags.some(tag => checkedTags.includes(tag));
+              if (hasTag || filteredChildren.length > 0) {
+                // Клонируем узел с отфильтрованными детьми
+                const newNode = {...node, children: filteredChildren};
+                filtered.push(newNode);
+              }
+            });
+            return filtered;
+          }
+          const filteredData = filterNodes(backlogData);
+          renderTree(filteredData, document.getElementById('backlog'));
+        }
+
+        // Собираем теги
+        const uniqueTags = collectUniqueTags(data);
+        renderTagFilter(uniqueTags);
+
+        backlogData = data;
+
+        // Вычисляем нагрузку из данных
+        developersWorkload = calculateWorkloadFromData(data);
+        renderWorkload();
+
+        renderTree(data, container);
         } catch (error) {
           container.innerHTML = `<div class="error">Ошибка: ${error.message}<br>Убедитесь, что файл backlog.json находится в той же папке и доступен через веб-сервер.</div>`;
         }
