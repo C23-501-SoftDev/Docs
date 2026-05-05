@@ -4,6 +4,72 @@
   <meta charset="UTF-8">
   <title>Admin Panel - User & JWT Auth</title>
   <link rel="stylesheet" href="../style.css">
+  <style>
+    .login-section {
+      background: #FFF;
+      border: 1px solid #E5E7EB;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .login-section h3 { margin-top: 0; margin-bottom: 16px; font-size: 1.1rem; }
+    .login-row { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
+    .login-row .form-group { flex: 1; min-width: 180px; margin-bottom: 0; }
+    .login-row .form-group label { font-size: 0.9rem; }
+    .token-display {
+      background: #F3F4F6;
+      border: 1px solid #E5E7EB;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-top: 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      word-break: break-all;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .token-display .token-label {
+      font-family: Inter, Arial, sans-serif;
+      font-weight: 600;
+      color: #6B7280;
+      white-space: nowrap;
+    }
+    .token-display .token-value {
+      color: #111827;
+      flex: 1;
+    }
+    .token-display .token-status {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .token-status.valid { background: #D1FAE5; color: #065F46; }
+    .token-status.invalid { background: #FEE2E2; color: #991B1B; }
+    .token-status.none { background: #F3F4F6; color: #6B7280; }
+    .user-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #E0E7FF;
+      color: #1D4ED8;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    .card-settings {
+      background: #FFF;
+      border: 1px solid #E5E7EB;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+  </style>
 </head>
 <body>
 <div class="layout">
@@ -20,48 +86,110 @@
   <div class="content">
     <div class="header">
       <h1>User & JWT Configuration</h1>
-      <button class="button-primary" onclick="openUserModal()">+ Create User</button>
     </div>
-    <div class="rbac-grid">
-      <div class="card">
-        <h3>JWT Auth Settings</h3>
+
+    <!-- Login Simulation -->
+    <div class="login-section">
+      <h3>Authentication Simulation</h3>
+      <div class="login-row">
         <div class="form-group">
-          <label>Secret Key (HS256)</label>
-          <input type="text" id="jwtSecret" placeholder="••••••••••••••">
+          <label>Login</label>
+          <input type="text" id="loginUsername" placeholder="Enter login" value="admin">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" value="password">
+        </div>
+        <button class="button-primary" id="loginBtn">Login</button>
+        <button class="button-secondary" id="logoutBtn" disabled>Logout</button>
+      </div>
+
+      <div class="token-display" id="tokenDisplay">
+        <span class="token-label">JWT Token:</span>
+        <span class="token-value" id="tokenValue">—</span>
+        <span class="token-status none" id="tokenStatus">Not logged in</span>
+      </div>
+
+      <div class="auth-info-row">
+        <span class="info-label">Current user:</span>
+        <span class="user-badge" id="currentUserBadge" style="display:none;">—</span>
+        <span class="info-label">Role:</span>
+        <span class="info-value" id="currentRoleDisplay">—</span>
+      </div>
+    </div>
+
+    <div class="card-settings">
+      <h3>JWT Auth Settings</h3>
+      <div class="form-group">
+        <label>Secret Key (HS256)</label>
+        <input type="text" id="jwtSecret" placeholder="••••••••••••••">
       </div>
       <div class="form-group">
-          <label>Token Expiration (min)</label>
-          <input type="number" id="jwtExp" value="60">
-        </div>
-        <button class="button-secondary" id="saveJwtBtn">Save Config</button>
+        <label>Token Expiration (min)</label>
+        <input type="number" id="jwtExp" value="60">
       </div>
-    </div>
-  </div>
-
-<div class="modal" id="userModal">
-  <div class="modal-content">
-    <h3>Create User</h3>
-    <div class="form-group">
-      <label>Login *</label>
-      <input type="text" id="userLogin" placeholder="Enter login">
-    </div>
-    <div class="form-group">
-      <label>Email *</label>
-      <input type="email" id="userEmail" placeholder="user@example.com">
-    </div>
-    <div class="form-group">
-      <label>Password *</label>
-      <input type="password" id="userPassword" placeholder="••••••••">
-    </div>
-    <div style="display:flex; gap:12px; justify-content:flex-end;">
-      <button class="button-primary" id="saveUserBtn">Save</button>
-      <button class="button-secondary" id="closeUserModalBtn">Cancel</button>
+      <button class="button-secondary" id="saveJwtBtn">Save Config</button>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast">Saved successfully</div>
 <script>
+  // --- Mock state ---
+  let isLoggedIn = false;
+  let currentUser = null;
+  let currentToken = null;
+
+  // Simulated users database
+  const mockUsers = [
+    { login: 'admin', password: 'password', email: 'admin@example.com', role: 'Admin' },
+    { login: 'editor_ivan', password: 'editor123', email: 'ivan@example.com', role: 'Editor' },
+    { login: 'reader_anna', password: 'reader123', email: 'anna@example.com', role: 'Reader' }
+  ];
+
+  // Helper: generate a fake JWT
+  function generateFakeJwt(user) {
+    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+    const payload = btoa(JSON.stringify({
+      sub: user.login,
+      email: user.email,
+      role: user.role,
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 3600
+    }));
+    const signature = btoa('fake_signature_' + user.login);
+    return `${header}.${payload}.${signature}`;
+  }
+
+  function updateAuthUI() {
+    const tokenValue = document.getElementById('tokenValue');
+    const tokenStatus = document.getElementById('tokenStatus');
+    const currentUserBadge = document.getElementById('currentUserBadge');
+    const currentRoleDisplay = document.getElementById('currentRoleDisplay');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    if (isLoggedIn && currentUser) {
+      tokenValue.textContent = currentToken;
+      tokenStatus.textContent = 'Valid';
+      tokenStatus.className = 'token-status valid';
+      currentUserBadge.style.display = 'inline-flex';
+      currentUserBadge.textContent = currentUser.login;
+      currentRoleDisplay.textContent = currentUser.role;
+      loginBtn.disabled = true;
+      logoutBtn.disabled = false;
+    } else {
+      tokenValue.textContent = '—';
+      tokenStatus.textContent = 'Not logged in';
+      tokenStatus.className = 'token-status none';
+      currentUserBadge.style.display = 'none';
+      currentUserBadge.textContent = '—';
+      currentRoleDisplay.textContent = '—';
+      loginBtn.disabled = false;
+      logoutBtn.disabled = true;
+    }
+  }
+
   function showToast(msg) {
     const toast = document.getElementById('toast');
     toast.textContent = msg;
@@ -69,19 +197,56 @@
     setTimeout(() => toast.style.display = 'none', 2000);
   }
 
-  function openUserModal() { document.getElementById('userModal').style.display = 'flex'; }
-  document.getElementById('closeUserModalBtn').addEventListener('click', () => {
-    document.getElementById('userModal').style.display = 'none';
-  });
+  function handleLogin() {
+    const login = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
 
-  document.getElementById('saveUserBtn').addEventListener('click', () => {
-    // В реальном приложении здесь был бы API вызов
-    document.getElementById('userModal').style.display = 'none';
-    showToast('User created successfully');
-  });
+    if (!login || !password) {
+      showToast('Login and password are required');
+      return;
+    }
 
-  document.getElementById('saveJwtBtn').addEventListener('click', () => showToast('Configuration updated'));
-  window.onclick = (e) => { if(e.target.classList.contains('modal')) e.target.style.display = 'none'; };
+    const user = mockUsers.find(u => u.login === login && u.password === password);
+    if (user) {
+      currentUser = user;
+      currentToken = generateFakeJwt(user);
+      isLoggedIn = true;
+      updateAuthUI();
+      showToast(`Logged in as ${user.login} (${user.role})`);
+    } else {
+      showToast('Invalid login or password');
+    }
+  }
+
+  function handleLogout() {
+    isLoggedIn = false;
+    currentUser = null;
+    currentToken = null;
+    updateAuthUI();
+    showToast('Logged out successfully');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Login / Logout
+    document.getElementById('loginBtn').addEventListener('click', handleLogin);
+    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+    document.getElementById('loginPassword').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleLogin();
+    });
+    document.getElementById('loginUsername').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleLogin();
+    });
+
+    document.getElementById('saveJwtBtn').addEventListener('click', () => {
+      const secret = document.getElementById('jwtSecret').value.trim();
+      const exp = document.getElementById('jwtExp').value;
+      if (!secret || !exp) {
+        showToast('Secret key and expiration are required');
+        return;
+      }
+      showToast('JWT configuration updated');
+    });
+  });
 </script>
 </body>
 </html>
