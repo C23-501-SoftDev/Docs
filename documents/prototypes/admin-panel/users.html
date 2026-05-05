@@ -24,20 +24,30 @@
       <button class="button-primary" id="createBtn" onclick="openUserModal(false)">+ Create User</button>
     </div>
 
-    <div id="usersSection">
-      <div class="filter-bar">
-        <div class="filter-group">
-          <label>Roles:</label>
-          <div class="role-filters">
-            <label><input type="checkbox" value="Admin" class="roleFilter"> Admin</label>
-            <label><input type="checkbox" value="Editor" class="roleFilter"> Editor</label>
-            <label><input type="checkbox" value="Reader" class="roleFilter"> Reader</label>
-          </div>
+    <div class="role-selector-bar">
+          <label>Simulate role access:</label>
+          <select id="currentRoleSelector">
+            <option value="Admin" selected>Admin (full access)</option>
+            <option value="Editor">Editor (restricted)</option>
+            <option value="Reader">Reader (restricted)</option>
+          </select>
+          <span style="font-size:12px; color:#6B7280;">(UI elements hide for non-Admin)</span>
         </div>
-        <input type="text" id="searchInput" placeholder="Search by Login/Email" style="flex:1; max-width:260px;">
-        <button class="button-primary" id="applyFiltersBtn">Apply</button>
-        <button class="button-secondary" id="clearFiltersBtn">Clear</button>
-      </div>
+
+        <div id="usersSection" class="admin-section">
+          <div class="filter-bar">
+            <div class="filter-group">
+              <label>Roles:</label>
+              <div class="role-filters">
+                <label><input type="checkbox" value="Admin" class="roleFilter"> Admin</label>
+                <label><input type="checkbox" value="Editor" class="roleFilter"> Editor</label>
+                <label><input type="checkbox" value="Reader" class="roleFilter"> Reader</label>
+              </div>
+            </div>
+            <input type="text" id="searchInput" placeholder="Search by Login/Email" style="flex:1; max-width:260px;">
+            <button class="button-primary" id="applyFiltersBtn">Apply</button>
+            <button class="button-secondary" id="clearFiltersBtn">Clear</button>
+          </div>
 
       <div style="overflow-x:auto;">
         <table id="usersTable">
@@ -138,11 +148,44 @@
   let editingUserId = null;
   let pendingDeleteId = null;
 
-  function showToast(msg) {
+  // Current admin id (charlie — id=4) for self-demotion protection
+  const CURRENT_ADMIN_ID = 4;
+
+  // Simulated restrictions for ON DELETE RESTRICT:
+  // id=1 (johndoe) is owner of "Project Alpha" space, id=2 (alice) is author of documents
+  const userRestrictions = {
+    1: 'user is owner of space "Project Alpha"',
+    2: 'user is author of documents'
+  };
+
+  function showToast(msg, isError) {
     const toast = document.getElementById('toast');
     toast.textContent = msg;
+    toast.className = 'toast' + (isError ? ' toast-error' : '');
     toast.style.display = 'block';
-    setTimeout(() => toast.style.display = 'none', 2000);
+    setTimeout(() => { toast.style.display = 'none'; toast.className = 'toast'; }, 2000);
+  }
+
+  function isCurrentAdmin(id) {
+    return id === CURRENT_ADMIN_ID;
+  }
+
+  function getDeleteRestriction(userId) {
+    return userRestrictions[userId] || null;
+  }
+
+  function updateAccessUI() {
+    const currentRole = document.getElementById('currentRoleSelector').value;
+    const section = document.getElementById('usersSection');
+    const createBtn = document.getElementById('createBtn');
+
+    if (currentRole === 'Admin') {
+      section.classList.remove('restricted-area');
+      createBtn.disabled = false;
+    } else {
+      section.classList.add('restricted-area');
+      createBtn.disabled = true;
+    }
   }
 
   function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
@@ -186,8 +229,13 @@
           <td>${escapeHtml(u.email)}</td>
           <td>${u.roles.map(r => `<span class="badge ${r}">${r}</span>`).join('')}</td>
           <td><span class="badge ${u.status.toLowerCase()}">${u.status}</span></td>
-          <td class="actions">
+                    <td class="actions">
             <button class="button-secondary" onclick="editUser(${u.id})">Edit</button>
+            <select class="role-quick-select" onchange="quickChangeRole(${u.id}, this.value)">
+              <option value="Admin" ${u.roles.includes('Admin') ? 'selected' : ''}>Admin</option>
+              <option value="Editor" ${u.roles.includes('Editor') ? 'selected' : ''}>Editor</option>
+              <option value="Reader" ${u.roles.includes('Reader') ? 'selected' : ''}>Reader</option>
+            </select>
             <button class="button-danger" onclick="deleteUserPrompt(${u.id})">Delete</button>
           </td>
         </tr>
@@ -235,7 +283,12 @@
     }
   }
 
-  function editUser(id) {
+    function editUser(id) {
+    // US4.1.6 Scenario 4: Protect self-demotion in modal
+    if (isCurrentAdmin(id)) {
+      showToast('Cannot edit own user in modal', true);
+      return;
+    }
     const user = usersData.find(u => u.id === id);
     if (!user) return;
     editingUserId = id;
@@ -276,10 +329,29 @@
     renderUsers();
   }
 
-  function deleteUserPrompt(id) {
-    pendingDeleteId = id;
-    document.getElementById('deleteModal').style.display = 'flex';
-  }
+    function quickChangeRole(userId, newRole) {
+      // US4.1.6 Scenario 4: Protect self-demotion
+      if (isCurrentAdmin(userId)) {
+        showToast('Cannot change own role', true);
+        document.getElementById('currentRoleSelector').value = 'Admin';
+        return;
+      }
+      const user = usersData.find(u => u.id === userId);
+      if (!user) return;
+      user.roles = [newRole];
+      showToast(`Role changed to ${newRole} for ${user.login}`);
+      renderUsers();
+    }
+
+    function deleteUserPrompt(id) {
+      const restriction = getDeleteRestriction(id);
+      if (restriction) {
+        showToast('Cannot delete user: ' + restriction, true);
+        return;
+      }
+      pendingDeleteId = id;
+      document.getElementById('deleteModal').style.display = 'flex';
+    }
 
   function confirmDelete() {
     const idx = usersData.findIndex(u => u.id === pendingDeleteId);
@@ -297,6 +369,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    updateAccessUI();
     renderUsers();
     document.querySelectorAll('#usersTable th[data-sort]').forEach(th => {
       th.addEventListener('click', () => {
@@ -323,8 +396,9 @@
     document.getElementById('searchInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') applyUserFilters(); });
     document.getElementById('closeUserModalBtn').addEventListener('click', () => document.getElementById('userModal').style.display = 'none');
     document.getElementById('saveUserBtn').addEventListener('click', saveUser);
-    document.getElementById('cancelDeleteBtn').addEventListener('click', () => document.getElementById('deleteModal').style.display = 'none');
+        document.getElementById('cancelDeleteBtn').addEventListener('click', () => document.getElementById('deleteModal').style.display = 'none');
     document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+    document.getElementById('currentRoleSelector').addEventListener('change', updateAccessUI);
     window.onclick = (e) => { if(e.target.classList.contains('modal')) e.target.style.display = 'none'; };
   });
 </script>
