@@ -21,12 +21,22 @@
   <div class="content" style="display: flex; gap: 24px;">
     <div style="flex: 1;">
       <div class="header">
-      <h1>Spaces</h1>
-      <button class="button-primary" id="createBtn" onclick="openSpaceModal(false)">+ Create Space</button>
-    </div>
+        <h1>Spaces</h1>
+        <button class="button-primary" id="createBtn" onclick="openSpaceModal(false)">+ Create Space</button>
+      </div>
 
-    <!-- Spaces Section -->
-    <div id="spacesSection">
+      <div class="role-selector-bar">
+        <label>Simulate role access:</label>
+        <select id="currentRoleSelector">
+          <option value="Admin" selected>Admin (full access)</option>
+          <option value="Editor">Editor (restricted)</option>
+          <option value="Reader">Reader (restricted)</option>
+        </select>
+        <span style="font-size:12px; color:#6B7280;">(UI elements hide for non-Admin)</span>
+      </div>
+
+      <!-- Spaces Section -->
+      <div id="spacesSection" class="admin-section">
       <div style="overflow-x:auto;">
         <table id="spacesTable">
           <thead>
@@ -99,14 +109,29 @@
   let editingSpaceId = null;
   let pendingDeleteId = null;
 
-  function showToast(msg) {
+    function showToast(msg, isError) {
     const toast = document.getElementById('toast');
     toast.textContent = msg;
+    toast.className = 'toast' + (isError ? ' toast-error' : '');
     toast.style.display = 'block';
-    setTimeout(() => toast.style.display = 'none', 2000);
+    setTimeout(() => { toast.style.display = 'none'; toast.className = 'toast'; }, 2000);
   }
 
   function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
+  function updateAccessUI() {
+    const currentRole = document.getElementById('currentRoleSelector').value;
+    const section = document.getElementById('spacesSection');
+    const createBtn = document.getElementById('createBtn');
+
+    if (currentRole === 'Admin') {
+      section.classList.remove('restricted-area');
+      createBtn.disabled = false;
+    } else {
+      section.classList.add('restricted-area');
+      createBtn.disabled = true;
+    }
+  }
 
   function renderSpaces() {
     let filtered = [...spacesData];
@@ -167,7 +192,12 @@
     }
   }
 
-  function editSpace(id) {
+    function editSpace(id) {
+    const currentRole = document.getElementById('currentRoleSelector').value;
+    if (currentRole !== 'Admin') {
+      showToast('Only Admin can edit spaces', true);
+      return;
+    }
     const space = spacesData.find(s => s.id === id);
     if (!space) return;
     editingSpaceId = id;
@@ -179,7 +209,12 @@
     document.getElementById('spaceModal').style.display = 'flex';
   }
 
-  function saveSpace() {
+    function saveSpace() {
+    const currentRole = document.getElementById('currentRoleSelector').value;
+    if (currentRole !== 'Admin') {
+      showToast('Only Admin can modify spaces', true);
+      return;
+    }
     const name = document.getElementById('spaceName').value.trim();
     const description = document.getElementById('spaceDesc').value.trim();
     const owner = document.getElementById('spaceOwner').value.trim();
@@ -200,7 +235,12 @@
     renderSpaces();
   }
 
-  function deleteSpacePrompt(id) {
+    function deleteSpacePrompt(id) {
+    const currentRole = document.getElementById('currentRoleSelector').value;
+    if (currentRole !== 'Admin') {
+      showToast('Only Admin can delete spaces', true);
+      return;
+    }
     pendingDeleteId = id;
     document.getElementById('deleteModal').style.display = 'flex';
   }
@@ -220,6 +260,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    updateAccessUI();
     renderSpaces();
     document.querySelectorAll('#spacesTable th[data-sort]').forEach(th => {
       th.addEventListener('click', () => {
@@ -240,8 +281,9 @@
       spacesState.page = 1;
       renderSpaces();
     });
-    document.getElementById('closeSpaceModalBtn').addEventListener('click', () => document.getElementById('spaceModal').style.display = 'none');
+        document.getElementById('closeSpaceModalBtn').addEventListener('click', () => document.getElementById('spaceModal').style.display = 'none');
     document.getElementById('saveSpaceBtn').addEventListener('click', saveSpace);
+    document.getElementById('currentRoleSelector').addEventListener('change', updateAccessUI);
     document.getElementById('cancelDeleteBtn').addEventListener('click', () => document.getElementById('deleteModal').style.display = 'none');
     document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
     window.onclick = (e) => { if(e.target.classList.contains('modal')) e.target.style.display = 'none'; };
