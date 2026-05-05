@@ -288,6 +288,59 @@ th[data-sort].sort-desc::after { content: " ↓"; color:#DC2626; font-size:0.8em
   background: #DC2626 !important;
 }
 
+/* Autocomplete dropdown (US4.2.2) */
+.autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #FFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  display: none;
+  max-height: 180px;
+  overflow-y: auto;
+  margin-top: 2px;
+}
+.autocomplete-dropdown.open {
+  display: block;
+}
+.autocomplete-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  border-bottom: 1px solid #F3F4F6;
+  transition: background 0.1s;
+}
+.autocomplete-item:last-child {
+  border-bottom: none;
+}
+.autocomplete-item:hover {
+  background: #F3F4F6;
+  color: #1D4ED8;
+}
+
+/* Space Permissions Page (US4.2.2) */
+.space-info {
+  background: #FFF;
+  padding: 16px;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+.space-info h2 { margin: 0 0 8px 0; font-size: 1.25rem; }
+.space-info p { margin: 0; color: #6B7280; }
+.permission-badge {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+.badge.owner { background: #FEE2E2; color: #991B1B; }
+.badge.write { background: #DBEAFE; color: #1E40AF; }
+.badge.read { background: #F3F4F6; color: #374151; }
+
 /* Quick role change in table */
 .role-quick-select {
   width: auto;
