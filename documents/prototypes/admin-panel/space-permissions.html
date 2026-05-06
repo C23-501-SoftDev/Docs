@@ -3,26 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Admin Panel - Space Permissions</title>
-  <link rel="stylesheet" href="../style.css">
-  <style>
-    .space-info {
-      background: #FFF;
-      padding: 16px;
-      border: 1px solid #E5E7EB;
-      border-radius: 12px;
-      margin-bottom: 24px;
-    }
-    .space-info h2 { margin: 0 0 8px 0; font-size: 1.25rem; }
-    .space-info p { margin: 0; color: #6B7280; }
-    .permission-badge {
-      font-weight: 600;
-      text-transform: uppercase;
-      font-size: 11px;
-    }
-    .badge.owner { background: #FEE2E2; color: #991B1B; }
-    .badge.write { background: #DBEAFE; color: #1E40AF; }
-    .badge.read { background: #F3F4F6; color: #374151; }
-  </style>
+    <link rel="stylesheet" href="../style.css">
 </head>
 <body>
 <div class="layout">
@@ -33,7 +14,6 @@
       <li><a href="users.html">Users</a></li>
       <li><a href="auth-setup.html">Auth & JWT</a></li>
       <li class="active"><a href="spaces.html">Spaces</a></li>
-      <li><a href="settings.html">Settings</a></li>
     </ul>
   </div>
 
@@ -46,13 +26,23 @@
       <button class="button-primary" id="addPermissionBtn">+ Assign Permission</button>
     </div>
 
+        <div class="role-selector-bar">
+      <label>Simulate role access:</label>
+      <select id="currentRoleSelector">
+        <option value="Admin" selected>Admin (full access)</option>
+        <option value="Editor">Editor (restricted)</option>
+        <option value="Reader">Reader (restricted)</option>
+      </select>
+      <span style="font-size:12px; color:#6B7280;">(UI elements hide for non-Admin)</span>
+    </div>
+
     <div class="space-info" id="spaceHeader">
       <h2 id="spaceTitle">Project Alpha</h2>
       <p id="spaceDesc">Development space for main application</p>
     </div>
 
     <!-- Permissions Table -->
-    <div id="permissionsSection">
+    <div id="permissionsSection" class="admin-section">
       <div style="overflow-x:auto;">
         <table>
           <thead>
@@ -75,9 +65,10 @@
 <div class="modal" id="permissionModal">
   <div class="modal-content">
     <h3>Assign Permission</h3>
-    <div class="form-group">
+        <div class="form-group" style="position:relative;">
       <label>User or Group *</label>
-      <input id="targetIdentity" placeholder="Enter username or group name">
+      <input id="targetIdentity" placeholder="Enter username or group name" autocomplete="off">
+      <div id="autocompleteContainer" class="autocomplete-dropdown"></div>
     </div>
     <div class="form-group">
       <label>Access Level *</label>
@@ -108,7 +99,12 @@
 <div class="toast" id="toast">Success</div>
 
 <script>
-  // Mock data for permissions
+    // Mock data for autocomplete
+  const mockIdentities = [
+    'johndoe', 'alice', 'bob', 'charlie', 'diana', 'eve',
+    'Developers', 'QA_Team', 'Designers', 'Product_Managers', 'DevOps'
+  ];
+
   let permissions = [
     { id: 1, identity: 'johndoe', role: 'OWNER', grantedBy: 'system' },
     { id: 2, identity: 'Developers', role: 'WRITE', grantedBy: 'johndoe' },
@@ -117,21 +113,77 @@
   ];
 
   let pendingDeleteId = null;
+  let debounceTimer = null;
 
-  function showToast(msg) {
+  function showToast(msg, isError) {
     const toast = document.getElementById('toast');
     toast.textContent = msg;
+    toast.className = 'toast' + (isError ? ' toast-error' : '');
     toast.style.display = 'block';
-    setTimeout(() => toast.style.display = 'none', 2000);
+    setTimeout(() => { toast.style.display = 'none'; toast.className = 'toast'; }, 2000);
+  }
+
+    function updateAccessUI() {
+    const currentRole = document.getElementById('currentRoleSelector').value;
+    const section = document.getElementById('permissionsSection');
+    const addBtn = document.getElementById('addPermissionBtn');
+
+    if (currentRole === 'Admin') {
+      section.classList.remove('restricted-area');
+      addBtn.disabled = false;
+    } else {
+      section.classList.add('restricted-area');
+      addBtn.disabled = true;
+    }
+  }
+
+  function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
+  // --- Autocomplete for identity input (US4.2.2 UX/UI) ---
+  function buildAutocompleteList(filter) {
+    const minChars = 3;
+    if (filter.length < minChars) return [];
+    const lower = filter.toLowerCase();
+    return mockIdentities.filter(id => id.toLowerCase().includes(lower));
+  }
+
+  function renderAutocomplete(suggestions) {
+    const container = document.getElementById('autocompleteContainer');
+    container.innerHTML = '';
+    if (suggestions.length === 0) {
+      container.classList.remove('open');
+      return;
+    }
+    container.classList.add('open');
+    suggestions.forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'autocomplete-item';
+      div.textContent = s;
+      div.onclick = () => {
+        document.getElementById('targetIdentity').value = s;
+        container.classList.remove('open');
+        container.innerHTML = '';
+      };
+      container.appendChild(div);
+    });
+  }
+
+  function handleIdentityInput() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      const val = document.getElementById('targetIdentity').value.trim();
+      const suggestions = buildAutocompleteList(val);
+      renderAutocomplete(suggestions);
+    }, 300);
   }
 
   function renderPermissions() {
     const tbody = document.getElementById('permissionsTbody');
     tbody.innerHTML = permissions.map(p => `
       <tr>
-        <td><strong>${p.identity}</strong></td>
+        <td><strong>${escapeHtml(p.identity)}</strong></td>
         <td><span class="badge ${p.role.toLowerCase()} permission-badge">${p.role}</span></td>
-        <td>${p.grantedBy}</td>
+        <td>${escapeHtml(p.grantedBy)}</td>
         <td class="actions">
           <button class="button-danger" onclick="promptRevoke(${p.id})">Revoke</button>
         </td>
@@ -177,7 +229,9 @@
     document.getElementById('accessLevel').value = 'READ';
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', () => {
+    updateAccessUI();
+
     // Try to get space info from URL (mocking)
     const urlParams = new URLSearchParams(window.location.search);
     const spaceName = urlParams.get('name');
@@ -187,9 +241,28 @@
 
     renderPermissions();
 
+    document.getElementById('currentRoleSelector').addEventListener('change', updateAccessUI);
+
     document.getElementById('addPermissionBtn').onclick = () => {
+      // Reset autocomplete when modal opens
+      document.getElementById('targetIdentity').value = '';
+      document.getElementById('accessLevel').value = 'READ';
+      document.getElementById('autocompleteContainer').classList.remove('open');
+      document.getElementById('autocompleteContainer').innerHTML = '';
       document.getElementById('permissionModal').style.display = 'flex';
     };
+
+    document.getElementById('targetIdentity').addEventListener('input', handleIdentityInput);
+
+    // Hide autocomplete when clicking outside
+    document.addEventListener('click', (e) => {
+      const container = document.getElementById('autocompleteContainer');
+      const input = document.getElementById('targetIdentity');
+      if (!input.contains(e.target) && !container.contains(e.target)) {
+        container.classList.remove('open');
+        container.innerHTML = '';
+      }
+    });
 
     document.getElementById('closeModalBtn').onclick = () => {
       document.getElementById('permissionModal').style.display = 'none';

@@ -369,6 +369,47 @@
       .tab-content.active {
         display: block;
       }
+      /* Фильтры */
+      .filters-section {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        overflow: hidden;
+      }
+      .filters-header {
+        background: #f8f9fa;
+        padding: 10px 15px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        user-select: none;
+      }
+      .filters-header:hover {
+        background: #f0f2f5;
+      }
+      .filters-header.active-filters {
+        background: #e3f2fd;
+        border-bottom: 1px solid #bbdefb;
+      }
+      .filter-indicator {
+        font-size: 0.8em;
+        padding: 2px 8px;
+        border-radius: 10px;
+        background: #3498db;
+        color: white;
+        display: none;
+      }
+      .active-filters .filter-indicator {
+        display: inline-block;
+      }
+      .filters-body {
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   </head>
@@ -451,9 +492,21 @@
 
     <!-- Вкладка "Иерархия бэклога" -->
     <div id="tab-backlog" class="tab-content active">
-      <div style="margin-bottom: 15px;">
-        <strong>Фильтр по тегам:</strong>
-        <div id="tagFilterContainer" style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px;"></div>
+      <div class="filters-section">
+        <div class="filters-header" onclick="toggleFilters()">
+          <strong>🔍 Фильтры <span id="activeFiltersBadge" class="filter-indicator">Активны</span></strong>
+          <span id="filtersToggleIcon">▼</span>
+        </div>
+        <div id="filtersBody" class="filters-body">
+          <div>
+            <strong>Фильтр по тегам:</strong>
+            <div id="tagFilterContainer" style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px;"></div>
+          </div>
+          <div>
+            <strong>Фильтр по исполнителям:</strong>
+            <div id="assigneeFilterContainer" style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px;"></div>
+          </div>
+        </div>
       </div>
       <div id="backlog" class="backlog-container">Загрузка данных...</div>
     </div>
@@ -476,6 +529,29 @@
         document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
         document.getElementById(`tab-${tabName}`).classList.add('active');
         if (!skipUpdateUrl) updateUrl();
+      }
+
+      function toggleFilters() {
+        const body = document.getElementById('filtersBody');
+        const icon = document.getElementById('filtersToggleIcon');
+        const isHidden = body.style.display === 'none';
+        body.style.display = isHidden ? 'flex' : 'none';
+        icon.textContent = isHidden ? '▼' : '▶';
+        updateUrl();
+      }
+
+      function updateFilterStyles() {
+        const checkedTags = document.querySelectorAll('.tag-checkbox:checked').length;
+        const checkedAssignees = document.querySelectorAll('.assignee-checkbox:checked').length;
+        const header = document.querySelector('.filters-header');
+        const badge = document.getElementById('activeFiltersBadge');
+        
+        if (checkedTags > 0 || checkedAssignees > 0) {
+          header.classList.add('active-filters');
+          badge.textContent = `Активны: ${checkedTags + checkedAssignees}`;
+        } else {
+          header.classList.remove('active-filters');
+        }
       }
 
       function calculateWorkloadFromData(data) {
@@ -597,6 +673,22 @@
           return Array.from(tagsSet).sort();
         }
 
+        // Собираем уникальных исполнителей из backlog
+        function collectUniqueAssignees(data) {
+          const assigneesSet = new Set();
+          function collect(node) {
+            if (node.assignees) {
+              const assignees = Array.isArray(node.assignees) ? node.assignees : [node.assignees];
+              assignees.forEach(a => assigneesSet.add(a));
+            }
+            if (node.children) {
+              node.children.forEach(collect);
+            }
+          }
+          data.forEach(collect);
+          return Array.from(assigneesSet).sort();
+        }
+
         // Создаем UI фильтра по тегам
         function renderTagFilter(tags) {
           const filterContainer = document.getElementById('tagFilterContainer');
@@ -610,35 +702,67 @@
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.value = tag;
+            checkbox.className = 'tag-checkbox';
             if (selectedTags.includes(tag)) checkbox.checked = true;
             checkbox.onchange = () => {
-              applyTagFilter();
+              applyFilters();
               updateUrl();
             };
             label.appendChild(checkbox);
             label.appendChild(document.createTextNode(tag));
             filterContainer.appendChild(label);
           });
-          if (selectedTags.length > 0) applyTagFilter();
         }
 
-        // Фильтрация по выбранным тегам
-        function applyTagFilter() {
-          const checkedTags = Array.from(document.querySelectorAll('#tagFilterContainer input[type=checkbox]:checked')).map(cb => cb.value);
-          if (checkedTags.length === 0) {
+        // Создаем UI фильтра по исполнителям
+        function renderAssigneeFilter(assignees) {
+          const filterContainer = document.getElementById('assigneeFilterContainer');
+          filterContainer.innerHTML = '';
+          const urlParams = new URLSearchParams(window.location.search);
+          const selectedAssignees = urlParams.get('assignees') ? urlParams.get('assignees').split(',') : [];
+
+          assignees.forEach(assignee => {
+            const label = document.createElement('label');
+            label.style.marginRight = '10px';
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = assignee;
+            checkbox.className = 'assignee-checkbox';
+            if (selectedAssignees.includes(assignee)) checkbox.checked = true;
+            checkbox.onchange = () => {
+              applyFilters();
+              updateUrl();
+            };
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(assignee));
+            filterContainer.appendChild(label);
+          });
+        }
+
+        // Фильтрация по выбранным тегам и исполнителям
+        function applyFilters() {
+          const checkedTags = Array.from(document.querySelectorAll('.tag-checkbox:checked')).map(cb => cb.value);
+          const checkedAssignees = Array.from(document.querySelectorAll('.assignee-checkbox:checked')).map(cb => cb.value);
+          
+          updateFilterStyles();
+
+          if (checkedTags.length === 0 && checkedAssignees.length === 0) {
             renderTree(backlogData, document.getElementById('backlog'));
             return;
           }
+          
           function filterNodes(nodes) {
             const filtered = [];
             nodes.forEach(node => {
-              // Проверяем теги в node
               const nodeTags = node.metadata && node.metadata.tags ? node.metadata.tags : [];
-              // Рекурсивно фильтруем детей
+              const nodeAssignees = node.assignees ? (Array.isArray(node.assignees) ? node.assignees : [node.assignees]) : [];
+              
               const filteredChildren = node.children ? filterNodes(node.children) : [];
-              const hasTag = nodeTags.some(tag => checkedTags.includes(tag));
-              if (hasTag || filteredChildren.length > 0) {
-                // Клонируем узел с отфильтрованными детьми
+              
+              const matchesTag = checkedTags.length === 0 || nodeTags.some(tag => checkedTags.includes(tag));
+              const matchesAssignee = checkedAssignees.length === 0 || nodeAssignees.some(a => checkedAssignees.includes(a));
+              
+              if ((matchesTag && matchesAssignee) || filteredChildren.length > 0) {
                 const newNode = {...node, children: filteredChildren};
                 filtered.push(newNode);
               }
@@ -649,18 +773,22 @@
           renderTree(filteredData, document.getElementById('backlog'));
         }
 
-        // Собираем теги
+        // Собираем теги и исполнителей
         const uniqueTags = collectUniqueTags(data);
+        const uniqueAssignees = collectUniqueAssignees(data);
         backlogData = data;
         renderTagFilter(uniqueTags);
+        renderAssigneeFilter(uniqueAssignees);
 
         // Вычисляем нагрузку из данных
         developersWorkload = calculateWorkloadFromData(data);
         renderWorkload();
 
         const urlParams = new URLSearchParams(window.location.search);
-        if (!urlParams.get('tags')) {
+        if (!urlParams.get('tags') && !urlParams.get('assignees')) {
             renderTree(data, container);
+        } else {
+            applyFilters();
         }
         } catch (error) {
           container.innerHTML = `<div class="error">Ошибка: ${error.message}<br>Убедитесь, что файл backlog.json находится в той же папке и доступен через веб-сервер.</div>`;
@@ -757,12 +885,28 @@
         const tabName = activeTab.getAttribute('onclick').match(/'([^']+)'/)[1];
         url.searchParams.set('tab', tabName);
 
+        // Filters collapse state
+        const filtersBody = document.getElementById('filtersBody');
+        if (filtersBody.style.display === 'none') {
+          url.searchParams.set('filters_collapsed', '1');
+        } else {
+          url.searchParams.delete('filters_collapsed');
+        }
+
         // Tags
-        const checkedTags = Array.from(document.querySelectorAll('#tagFilterContainer input[type=checkbox]:checked')).map(cb => cb.value);
+        const checkedTags = Array.from(document.querySelectorAll('.tag-checkbox:checked')).map(cb => cb.value);
         if (checkedTags.length > 0) {
           url.searchParams.set('tags', checkedTags.join(','));
         } else {
           url.searchParams.delete('tags');
+        }
+
+        // Assignees
+        const checkedAssignees = Array.from(document.querySelectorAll('.assignee-checkbox:checked')).map(cb => cb.value);
+        if (checkedAssignees.length > 0) {
+          url.searchParams.set('assignees', checkedAssignees.join(','));
+        } else {
+          url.searchParams.delete('assignees');
         }
 
         // Collapsed/Expanded states
@@ -793,6 +937,14 @@
         const tab = urlParams.get('tab');
         if (tab) {
           switchTab(tab, true);
+        }
+
+        // Restore filters collapse state
+        if (urlParams.get('filters_collapsed') === '1') {
+          const body = document.getElementById('filtersBody');
+          const icon = document.getElementById('filtersToggleIcon');
+          body.style.display = 'none';
+          icon.textContent = '▶';
         }
 
         // Expanded state is handled in createNodeElement (via id check)
