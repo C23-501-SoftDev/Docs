@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel - Users</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <h2>Navigation</h2>
+    <ul>
+      <li><a href="index.html">Dashboard</a></li>
+      <li class="active"><a href="users.html">Users</a></li>
+      <li><a href="auth-setup.html">Auth & JWT</a></li>
+      <li><a href="spaces.html">Spaces</a></li>
+    </ul>
+  </div>
+
+  <div class="content">
+    <div class="header">
+      <h1>Users</h1>
+      <button class="button-primary" id="createBtn" onclick="openUserModal(false)">+ Create User</button>
+    </div>
+
+    <div class="role-selector-bar">
+          <label>Simulate role access:</label>
+          <select id="currentRoleSelector">
+            <option value="Admin" selected>Admin (full access)</option>
+            <option value="Editor">Editor (restricted)</option>
+            <option value="Reader">Reader (restricted)</option>
+          </select>
+          <span style="font-size:12px; color:#6B7280;">(UI elements hide for non-Admin)</span>
+        </div>
+
+        <div id="usersSection" class="admin-section">
+          <div class="filter-bar">
+            <div class="filter-group">
+              <label>Roles:</label>
+              <div class="role-filters">
+                <label><input type="checkbox" value="Admin" class="roleFilter"> Admin</label>
+                <label><input type="checkbox" value="Editor" class="roleFilter"> Editor</label>
+                <label><input type="checkbox" value="Reader" class="roleFilter"> Reader</label>
+              </div>
+            </div>
+            <input type="text" id="searchInput" placeholder="Search by Login/Email" style="flex:1; max-width:260px;">
+            <button class="button-primary" id="applyFiltersBtn">Apply</button>
+            <button class="button-secondary" id="clearFiltersBtn">Clear</button>
+          </div>
+
+      <div style="overflow-x:auto;">
+        <table id="usersTable">
+          <thead>
+            <tr>
+              <th data-sort="id">ID</th>
+              <th data-sort="login">Login</th>
+              <th data-sort="email">Email</th>
+              <th data-sort="roles">Roles</th>
+              <th data-sort="status">Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="usersTbody"></tbody>
+        </table>
+      </div>
+
+      <div class="pagination" id="usersPagination">
+        <button class="button-secondary" id="usersPrevBtn">Prev</button>
+        <span id="usersPageInfo">Page 1 of 1</span>
+        <select id="usersPerPageSelect">
+          <option value="5">5 per page</option>
+          <option value="10" selected>10 per page</option>
+          <option value="20">20 per page</option>
+          <option value="50">50 per page</option>
+          <option value="All">All</option>
+        </select>
+        <button class="button-secondary" id="usersNextBtn">Next</button>
+      </div>
+      <div class="states">
+        <p id="usersEmptyMsg" style="display:none; text-align:center;">No users found</p>
+      </div>
+    </div>
+  </div>
+
+<!-- User Modal -->
+<div class="modal" id="userModal">
+  <div class="modal-content">
+    <h3 id="userModalTitle">Create User</h3>
+    <div class="form-group">
+      <label>Login *</label>
+      <input type="text" id="userLogin" placeholder="Enter login">
+    </div>
+    <div class="form-group">
+      <label>Email *</label>
+      <input type="email" id="userEmail" placeholder="user@example.com">
+    </div>
+    <div class="form-group">
+      <label>Roles (multiple choice)</label>
+      <div class="checkbox-row">
+        <label><input type="checkbox" value="Admin" class="userRoleCheckbox"> Admin</label>
+        <label><input type="checkbox" value="Editor" class="userRoleCheckbox"> Editor</label>
+        <label><input type="checkbox" value="Reader" class="userRoleCheckbox"> Reader</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Status</label>
+      <select id="userStatus">
+        <option value="Active">Active</option>
+        <option value="Inactive">Inactive</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Password (leave empty to keep unchanged)</label>
+      <input type="password" id="userPassword" placeholder="••••••••">
+    </div>
+    <div style="display:flex; gap:12px; justify-content:flex-end;">
+      <button class="button-primary" id="saveUserBtn">Save</button>
+      <button class="button-secondary" id="closeUserModalBtn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal" id="deleteModal">
+  <div class="modal-content">
+    <p>Are you sure you want to delete this item?</p>
+    <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:20px;">
+      <button class="button-secondary" id="cancelDeleteBtn">Cancel</button>
+      <button class="button-danger" id="confirmDeleteBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Success</div>
+
+<script>
+  let usersData = [
+    {id: 1, login: 'johndoe', email: 'john@example.com', roles: ['Admin', 'Editor'], status: 'Active', password: ''},
+    {id: 2, login: 'alice', email: 'alice@example.com', roles: ['Editor', 'Reader'], status: 'Active', password: ''},
+    {id: 3, login: 'bob', email: 'bob@example.com', roles: ['Reader'], status: 'Inactive', password: ''},
+    {id: 4, login: 'charlie', email: 'charlie@example.com', roles: ['Admin'], status: 'Active', password: ''},
+    {id: 5, login: 'diana', email: 'diana@example.com', roles: ['Editor'], status: 'Active', password: ''},
+    {id: 6, login: 'eve', email: 'eve@example.com', roles: ['Admin', 'Reader'], status: 'Active', password: ''}
+  ];
+
+  let usersState = { sortKey: 'id', sortDir: 'asc', page: 1, rowsPerPage: 10, roleFilters: [], searchTerm: '' };
+  let editingUserId = null;
+  let pendingDeleteId = null;
+
+  // Current admin id (charlie — id=4) for self-demotion protection
+  const CURRENT_ADMIN_ID = 4;
+
+  // Simulated restrictions for ON DELETE RESTRICT:
+  // id=1 (johndoe) is owner of "Project Alpha" space, id=2 (alice) is author of documents
+  const userRestrictions = {
+    1: 'user is owner of space "Project Alpha"',
+    2: 'user is author of documents'
+  };
+
+  function showToast(msg, isError) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.className = 'toast' + (isError ? ' toast-error' : '');
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; toast.className = 'toast'; }, 2000);
+  }
+
+  function isCurrentAdmin(id) {
+    return id === CURRENT_ADMIN_ID;
+  }
+
+  function getDeleteRestriction(userId) {
+    return userRestrictions[userId] || null;
+  }
+
+  function updateAccessUI() {
+    const currentRole = document.getElementById('currentRoleSelector').value;
+    const section = document.getElementById('usersSection');
+    const createBtn = document.getElementById('createBtn');
+
+    if (currentRole === 'Admin') {
+      section.classList.remove('restricted-area');
+      createBtn.disabled = false;
+    } else {
+      section.classList.add('restricted-area');
+      createBtn.disabled = true;
+    }
+  }
+
+  function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
+  function getFilteredUsers() {
+    return usersData.filter(user => {
+      if (usersState.roleFilters.length && !usersState.roleFilters.some(r => user.roles.includes(r))) return false;
+      if (usersState.searchTerm && !(user.login.toLowerCase().includes(usersState.searchTerm) || user.email.toLowerCase().includes(usersState.searchTerm))) return false;
+      return true;
+    });
+  }
+
+  function renderUsers() {
+    let filtered = getFilteredUsers();
+    filtered.sort((a,b) => {
+      let valA = a[usersState.sortKey];
+      let valB = b[usersState.sortKey];
+      if (Array.isArray(valA)) valA = valA.join(',');
+      if (Array.isArray(valB)) valB = valB.join(',');
+      if (typeof valA === 'string') { valA = valA.toLowerCase(); valB = valB.toLowerCase(); }
+      if (valA < valB) return usersState.sortDir === 'asc' ? -1 : 1;
+      if (valA > valB) return usersState.sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    let perPage = usersState.rowsPerPage === 'All' ? filtered.length : Number(usersState.rowsPerPage);
+    if (perPage === 0) perPage = filtered.length;
+    const totalPages = perPage === 0 ? 1 : Math.ceil(filtered.length / perPage);
+    if (usersState.page > totalPages) usersState.page = totalPages;
+    const start = (usersState.page - 1) * perPage;
+    const pageData = perPage === 0 ? filtered : filtered.slice(start, start + perPage);
+
+    const tbody = document.getElementById('usersTbody');
+    if (pageData.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No users</td></tr>';
+    } else {
+      tbody.innerHTML = pageData.map(u => `
+        <tr>
+          <td>${u.id}</td>
+          <td>${escapeHtml(u.login)}</td>
+          <td>${escapeHtml(u.email)}</td>
+          <td>${u.roles.map(r => `<span class="badge ${r}">${r}</span>`).join('')}</td>
+          <td><span class="badge ${u.status.toLowerCase()}">${u.status}</span></td>
+                    <td class="actions">
+            <button class="button-secondary" onclick="editUser(${u.id})">Edit</button>
+            <select class="role-quick-select" onchange="quickChangeRole(${u.id}, this.value)">
+              <option value="Admin" ${u.roles.includes('Admin') ? 'selected' : ''}>Admin</option>
+              <option value="Editor" ${u.roles.includes('Editor') ? 'selected' : ''}>Editor</option>
+              <option value="Reader" ${u.roles.includes('Reader') ? 'selected' : ''}>Reader</option>
+            </select>
+            <button class="button-danger" onclick="deleteUserPrompt(${u.id})">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+    document.getElementById('usersPageInfo').innerText = `Page ${usersState.page} of ${totalPages}`;
+    document.getElementById('usersPrevBtn').disabled = usersState.page <= 1;
+    document.getElementById('usersNextBtn').disabled = usersState.page >= totalPages;
+    document.getElementById('usersEmptyMsg').style.display = filtered.length === 0 ? 'block' : 'none';
+
+    document.querySelectorAll('#usersTable th[data-sort]').forEach(th => th.classList.remove('sort-asc','sort-desc'));
+    const activeTh = document.querySelector(`#usersTable th[data-sort="${usersState.sortKey}"]`);
+    if (activeTh) activeTh.classList.add(`sort-${usersState.sortDir}`);
+  }
+
+  function applyUserFilters() {
+    const checked = Array.from(document.querySelectorAll('.roleFilter:checked')).map(cb => cb.value);
+    usersState.roleFilters = checked;
+    usersState.searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+    usersState.page = 1;
+    renderUsers();
+    showToast('Filters applied');
+  }
+
+  function clearUserFilters() {
+    document.querySelectorAll('.roleFilter').forEach(cb => cb.checked = false);
+    document.getElementById('searchInput').value = '';
+    usersState.roleFilters = [];
+    usersState.searchTerm = '';
+    usersState.page = 1;
+    renderUsers();
+    showToast('Filters cleared');
+  }
+
+  function openUserModal(editMode = false) {
+    document.getElementById('userModal').style.display = 'flex';
+    if (!editMode) {
+      editingUserId = null;
+      document.getElementById('userModalTitle').innerText = 'Create User';
+      document.getElementById('userLogin').value = '';
+      document.getElementById('userEmail').value = '';
+      document.querySelectorAll('.userRoleCheckbox').forEach(cb => cb.checked = false);
+      document.getElementById('userStatus').value = 'Active';
+      document.getElementById('userPassword').value = '';
+    }
+  }
+
+    function editUser(id) {
+    // US4.1.6 Scenario 4: Protect self-demotion in modal
+    if (isCurrentAdmin(id)) {
+      showToast('Cannot edit own user in modal', true);
+      return;
+    }
+    const user = usersData.find(u => u.id === id);
+    if (!user) return;
+    editingUserId = id;
+    document.getElementById('userModalTitle').innerText = 'Edit User';
+    document.getElementById('userLogin').value = user.login;
+    document.getElementById('userEmail').value = user.email;
+    document.querySelectorAll('.userRoleCheckbox').forEach(cb => {
+      cb.checked = user.roles.includes(cb.value);
+    });
+    document.getElementById('userStatus').value = user.status;
+    document.getElementById('userPassword').value = '';
+    document.getElementById('userModal').style.display = 'flex';
+  }
+
+  function saveUser() {
+    const login = document.getElementById('userLogin').value.trim();
+    const email = document.getElementById('userEmail').value.trim();
+    const roles = Array.from(document.querySelectorAll('.userRoleCheckbox:checked')).map(cb => cb.value);
+    const status = document.getElementById('userStatus').value;
+    const password = document.getElementById('userPassword').value;
+    if (!login || !email) {
+      showToast('Login and Email are required');
+      return;
+    }
+    if (editingUserId === null) {
+      const newId = usersData.length ? Math.max(...usersData.map(u => u.id)) + 1 : 7;
+      usersData.push({ id: newId, login, email, roles, status, password: password || '' });
+      showToast(`User "${login}" created`);
+    } else {
+      const idx = usersData.findIndex(u => u.id === editingUserId);
+      if (idx !== -1) {
+        usersData[idx] = { ...usersData[idx], login, email, roles, status };
+        if (password) usersData[idx].password = password;
+        showToast(`User "${login}" updated`);
+      }
+    }
+    document.getElementById('userModal').style.display = 'none';
+    renderUsers();
+  }
+
+    function quickChangeRole(userId, newRole) {
+      // US4.1.6 Scenario 4: Protect self-demotion
+      if (isCurrentAdmin(userId)) {
+        showToast('Cannot change own role', true);
+        document.getElementById('currentRoleSelector').value = 'Admin';
+        return;
+      }
+      const user = usersData.find(u => u.id === userId);
+      if (!user) return;
+      user.roles = [newRole];
+      showToast(`Role changed to ${newRole} for ${user.login}`);
+      renderUsers();
+    }
+
+    function deleteUserPrompt(id) {
+      const restriction = getDeleteRestriction(id);
+      if (restriction) {
+        showToast('Cannot delete user: ' + restriction, true);
+        return;
+      }
+      pendingDeleteId = id;
+      document.getElementById('deleteModal').style.display = 'flex';
+    }
+
+  function confirmDelete() {
+    const idx = usersData.findIndex(u => u.id === pendingDeleteId);
+    if (idx !== -1) {
+      const login = usersData[idx].login;
+      usersData.splice(idx, 1);
+      showToast(`User "${login}" deleted`);
+      let filtered = getFilteredUsers();
+      let perPage = usersState.rowsPerPage === 'All' ? filtered.length : Number(usersState.rowsPerPage);
+      let totalPages = perPage === 0 ? 1 : Math.ceil(filtered.length / perPage);
+      if (usersState.page > totalPages) usersState.page = totalPages;
+      renderUsers();
+    }
+    document.getElementById('deleteModal').style.display = 'none';
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    updateAccessUI();
+    renderUsers();
+    document.querySelectorAll('#usersTable th[data-sort]').forEach(th => {
+      th.addEventListener('click', () => {
+        const key = th.dataset.sort;
+        if (usersState.sortKey === key) usersState.sortDir = usersState.sortDir === 'asc' ? 'desc' : 'asc';
+        else { usersState.sortKey = key; usersState.sortDir = 'asc'; }
+        renderUsers();
+      });
+    });
+    document.getElementById('usersPrevBtn').addEventListener('click', () => { if(usersState.page > 1) { usersState.page--; renderUsers(); } });
+    document.getElementById('usersNextBtn').addEventListener('click', () => {
+      let filtered = getFilteredUsers();
+      let perPage = usersState.rowsPerPage === 'All' ? filtered.length : Number(usersState.rowsPerPage);
+      let totalPages = perPage === 0 ? 1 : Math.ceil(filtered.length / perPage);
+      if(usersState.page < totalPages) { usersState.page++; renderUsers(); }
+    });
+    document.getElementById('usersPerPageSelect').addEventListener('change', (e) => {
+      usersState.rowsPerPage = e.target.value;
+      usersState.page = 1;
+      renderUsers();
+    });
+    document.getElementById('applyFiltersBtn').addEventListener('click', applyUserFilters);
+    document.getElementById('clearFiltersBtn').addEventListener('click', clearUserFilters);
+    document.getElementById('searchInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') applyUserFilters(); });
+    document.getElementById('closeUserModalBtn').addEventListener('click', () => document.getElementById('userModal').style.display = 'none');
+    document.getElementById('saveUserBtn').addEventListener('click', saveUser);
+        document.getElementById('cancelDeleteBtn').addEventListener('click', () => document.getElementById('deleteModal').style.display = 'none');
+    document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+    document.getElementById('currentRoleSelector').addEventListener('change', updateAccessUI);
+    window.onclick = (e) => { if(e.target.classList.contains('modal')) e.target.style.display = 'none'; };
+  });
+</script>
+</body>
+</html>
+

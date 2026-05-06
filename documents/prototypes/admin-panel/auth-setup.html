@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel - User & JWT Auth</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <h2>Navigation</h2>
+    <ul>
+      <li><a href="index.html">Dashboard</a></li>
+      <li><a href="users.html">Users</a></li>
+      <li class="active"><a href="auth-setup.html">Auth & JWT</a></li>
+      <li><a href="spaces.html">Spaces</a></li>
+    </ul>
+  </div>
+  <div class="content">
+    <div class="header">
+      <h1>User & JWT Configuration</h1>
+    </div>
+
+    <!-- Login Simulation -->
+    <div class="login-section">
+      <h3>Authentication Simulation</h3>
+      <div class="login-row">
+        <div class="form-group">
+          <label>Login</label>
+          <input type="text" id="loginUsername" placeholder="Enter login" value="admin">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" value="password">
+        </div>
+        <button class="button-primary" id="loginBtn">Login</button>
+        <button class="button-secondary" id="logoutBtn" disabled>Logout</button>
+      </div>
+
+      <div class="token-display" id="tokenDisplay">
+        <span class="token-label">JWT Token:</span>
+        <span class="token-value" id="tokenValue">—</span>
+        <span class="token-status none" id="tokenStatus">Not logged in</span>
+      </div>
+
+      <div class="auth-info-row">
+        <span class="info-label">Current user:</span>
+        <span class="user-badge" id="currentUserBadge" style="display:none;">—</span>
+        <span class="info-label">Role:</span>
+        <span class="info-value" id="currentRoleDisplay">—</span>
+      </div>
+    </div>
+
+    <div class="card-settings">
+      <h3>JWT Auth Settings</h3>
+      <div class="form-group">
+        <label>Secret Key (HS256)</label>
+        <input type="text" id="jwtSecret" placeholder="••••••••••••••">
+      </div>
+      <div class="form-group">
+        <label>Token Expiration (min)</label>
+        <input type="number" id="jwtExp" value="60">
+      </div>
+      <button class="button-secondary" id="saveJwtBtn">Save Config</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Saved successfully</div>
+<script>
+  // --- Mock state ---
+  let isLoggedIn = false;
+  let currentUser = null;
+  let currentToken = null;
+
+  // Simulated users database
+  const mockUsers = [
+    { login: 'admin', password: 'password', email: 'admin@example.com', role: 'Admin' },
+    { login: 'editor_ivan', password: 'editor123', email: 'ivan@example.com', role: 'Editor' },
+    { login: 'reader_anna', password: 'reader123', email: 'anna@example.com', role: 'Reader' }
+  ];
+
+  // Helper: generate a fake JWT
+  function generateFakeJwt(user) {
+    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+    const payload = btoa(JSON.stringify({
+      sub: user.login,
+      email: user.email,
+      role: user.role,
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 3600
+    }));
+    const signature = btoa('fake_signature_' + user.login);
+    return `${header}.${payload}.${signature}`;
+  }
+
+  function updateAuthUI() {
+    const tokenValue = document.getElementById('tokenValue');
+    const tokenStatus = document.getElementById('tokenStatus');
+    const currentUserBadge = document.getElementById('currentUserBadge');
+    const currentRoleDisplay = document.getElementById('currentRoleDisplay');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    if (isLoggedIn && currentUser) {
+      tokenValue.textContent = currentToken;
+      tokenStatus.textContent = 'Valid';
+      tokenStatus.className = 'token-status valid';
+      currentUserBadge.style.display = 'inline-flex';
+      currentUserBadge.textContent = currentUser.login;
+      currentRoleDisplay.textContent = currentUser.role;
+      loginBtn.disabled = true;
+      logoutBtn.disabled = false;
+    } else {
+      tokenValue.textContent = '—';
+      tokenStatus.textContent = 'Not logged in';
+      tokenStatus.className = 'token-status none';
+      currentUserBadge.style.display = 'none';
+      currentUserBadge.textContent = '—';
+      currentRoleDisplay.textContent = '—';
+      loginBtn.disabled = false;
+      logoutBtn.disabled = true;
+    }
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 2000);
+  }
+
+  function handleLogin() {
+    const login = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+
+    if (!login || !password) {
+      showToast('Login and password are required');
+      return;
+    }
+
+    const user = mockUsers.find(u => u.login === login && u.password === password);
+    if (user) {
+      currentUser = user;
+      currentToken = generateFakeJwt(user);
+      isLoggedIn = true;
+      updateAuthUI();
+      showToast(`Logged in as ${user.login} (${user.role})`);
+    } else {
+      showToast('Invalid login or password');
+    }
+  }
+
+  function handleLogout() {
+    isLoggedIn = false;
+    currentUser = null;
+    currentToken = null;
+    updateAuthUI();
+    showToast('Logged out successfully');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Login / Logout
+    document.getElementById('loginBtn').addEventListener('click', handleLogin);
+    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+    document.getElementById('loginPassword').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleLogin();
+    });
+    document.getElementById('loginUsername').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleLogin();
+    });
+
+    document.getElementById('saveJwtBtn').addEventListener('click', () => {
+      const secret = document.getElementById('jwtSecret').value.trim();
+      const exp = document.getElementById('jwtExp').value;
+      if (!secret || !exp) {
+        showToast('Secret key and expiration are required');
+        return;
+      }
+      showToast('JWT configuration updated');
+    });
+  });
+</script>
+</body>
+</html>

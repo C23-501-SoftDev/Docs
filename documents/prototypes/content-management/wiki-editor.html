@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Wiki Editor — US1.1.1</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .editor-metadata {
+      padding: 12px 24px;
+      border-bottom: 1px solid #E5E7EB;
+      background: #FFF;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .editor-metadata .field { display:flex; align-items:center; gap:6px; }
+    .editor-metadata .field label { font-size:12px; font-weight:600; color:#6B7280; text-transform:uppercase; }
+    .editor-metadata .field input,
+    .editor-metadata .field select {
+      width:auto; padding:4px 8px; font-size:13px;
+    }
+    .editor-metadata .field input { min-width:180px; }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <div class="space-header">
+      <h2>📦 Пространство</h2>
+      <div class="space-actions">
+        <button onclick="location.href='../admin-panel/spaces.html'" title="Управление пространствами">⚙️</button>
+      </div>
+    </div>
+    <div class="space-selector">
+      <div class="space-search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="spaceSearchInput" placeholder="Выберите пространство..." oninput="onSpaceSearchInput()" onfocus="openSpaceDropdown()" autocomplete="off">
+      </div>
+      <div class="space-dropdown" id="spaceDropdown"></div>
+    </div>
+    <div class="sidebar-search">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="treeSearchInput" placeholder="Поиск в дереве..." oninput="onTreeSearch()" autocomplete="off">
+    </div>
+    <div class="tree-nav" id="treeNav">
+      <div class="tree-empty">Выберите пространство</div>
+    </div>
+  </div>
+
+  <div class="content" style="padding:0; display:flex; flex-direction:column;">
+    <div class="editor-header">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <a href="documents.html" class="button-secondary" style="min-width:auto; padding:6px 12px; text-decoration:none;">&larr; Documents</a>
+        <h1 style="margin:0; font-size:18px;" id="editorTitle">New Document</h1>
+      </div>
+      <div class="editor-actions">
+        <span class="editor-status" id="statusBadge">Draft</span>
+        <button class="button-primary" onclick="saveDocument()">Save</button>
+      </div>
+    </div>
+
+    <div class="editor-metadata">
+      <div class="field">
+        <label>Title</label>
+        <input type="text" id="docTitleField" value="New Document" oninput="updateHeaderTitle()">
+      </div>
+      <div class="field">
+        <label>Space</label>
+        <select id="docSpaceField">
+          <option value="Project Alpha">Project Alpha</option>
+          <option value="Project Beta">Project Beta</option>
+          <option value="Knowledge Base">Knowledge Base</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Status</label>
+        <select id="docStatusField" onchange="updateStatusBadge()">
+          <option value="Draft">Draft</option>
+          <option value="Published">Published</option>
+          <option value="Deleted">Deleted</option>
+        </select>
+      </div>
+      <div class="field" id="authorFieldContainer">
+        <label>Author</label>
+        <span id="authorField" style="font-size:13px; color:#374151;">—</span>
+      </div>
+    </div>
+
+    <div class="editor-layout">
+      <div class="editor-pane">
+        <div class="pane-header">
+          <span class="pane-label">Wiki Markup</span>
+          <span class="pane-hint">Ctrl+S to save</span>
+        </div>
+        <div class="editor-toolbar">
+          <button class="toolbar-btn" onclick="wrapText('**','**')" title="Bold"><strong>B</strong></button>
+          <button class="toolbar-btn" onclick="wrapText('_','_')" title="Italic"><em>I</em></button>
+          <button class="toolbar-btn" onclick="insertAtCursor('\n- ')" title="Bullet list">• List</button>
+          <button class="toolbar-btn" onclick="insertAtCursor('\n1. ')" title="Numbered list">1. List</button>
+          <button class="toolbar-btn" onclick="insertAtCursor('\n```\n')" title="Code block">&lt;/&gt;</button>
+          <button class="toolbar-btn" onclick="insertAtCursor('## ')" title="Heading H2">H2</button>
+          <button class="toolbar-btn" onclick="insertImage()" title="Image">🖼</button>
+        </div>
+        <textarea class="editor-textarea" id="editorTextarea" spellcheck="true" placeholder="Enter Wiki markup here..."></textarea>
+      </div>
+      <div class="preview-pane">
+        <div class="pane-header">
+          <span class="pane-label">Preview</span>
+          <span class="pane-hint">Updates in real time</span>
+        </div>
+        <div class="preview-content" id="previewContent">
+          <p style="color:#9CA3AF;">Loading preview...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Success</div>
+
+<script>
+  let editor = document.getElementById('editorTextarea');
+  let preview = document.getElementById('previewContent');
+  let currentDocId = null;
+  let selectedSpace = 'Project Alpha';
+
+  const spaceList = [
+    { name: 'Project Alpha', owner: 'johndoe' },
+    { name: 'Project Beta', owner: 'alice' },
+    { name: 'Knowledge Base', owner: 'bob' }
+  ];
+
+  const spaceContents = {
+    'Project Alpha': {
+      groups: {
+        'Архитектура': [
+          { name: 'Architecture Overview', id: 2 },
+          { name: 'Security Policy', id: 7 }
+        ]
+      },
+      docs: [
+        { name: 'API Documentation', id: 1 }
+      ]
+    },
+    'Project Beta': {
+      groups: {
+        'Тестирование': [
+          { name: 'Testing Strategy', id: 4 }
+        ]
+      },
+      docs: [
+        { name: 'Deployment Guide', id: 5 }
+      ]
+    },
+    'Knowledge Base': {
+      groups: {},
+      docs: [
+        { name: 'Development Setup', id: 3 },
+        { name: 'User Manual v2', id: 6 }
+      ]
+    }
+  };
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 2000);
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // --- Space Selector ---
+  function renderSpaceDropdown(filterText) {
+    const dropdown = document.getElementById('spaceDropdown');
+    const filter = (filterText || '').toLowerCase();
+    const filtered = filter ? spaceList.filter(s => s.name.toLowerCase().includes(filter)) : spaceList;
+    if (filtered.length === 0) {
+      dropdown.innerHTML = '<div class="space-option-empty">Пространства не найдены</div>';
+    } else {
+      dropdown.innerHTML = filtered.map(s =>
+        `<div class="space-option ${s.name === selectedSpace ? 'active' : ''}" onclick="selectSpace('${escapeHtml(s.name)}')">📁 ${escapeHtml(s.name)}</div>`
+      ).join('');
+    }
+  }
+
+  function openSpaceDropdown() {
+    document.getElementById('spaceDropdown').classList.add('open');
+    renderSpaceDropdown(document.getElementById('spaceSearchInput').value);
+  }
+
+  function closeSpaceDropdown() {
+    document.getElementById('spaceDropdown').classList.remove('open');
+  }
+
+  function onSpaceSearchInput() {
+    renderSpaceDropdown(document.getElementById('spaceSearchInput').value);
+    document.getElementById('spaceDropdown').classList.add('open');
+  }
+
+  function selectSpace(name) {
+    selectedSpace = name;
+    document.getElementById('spaceSearchInput').value = name;
+    document.getElementById('treeSearchInput').value = '';
+    closeSpaceDropdown();
+    renderTree('');
+  }
+
+  // --- Tree ---
+  function renderTree(filterText) {
+    const container = document.getElementById('treeNav');
+    const content = spaceContents[selectedSpace];
+    if (!content) { container.innerHTML = '<div class="tree-empty">Нет данных</div>'; return; }
+
+    const ft = (filterText || '').toLowerCase().trim();
+    let html = '';
+    let hasVisible = false;
+
+    const groupEntries = Object.entries(content.groups);
+    groupEntries.forEach(([groupName, docs]) => {
+      const filteredDocs = ft ? docs.filter(d => d.name.toLowerCase().includes(ft)) : docs;
+      const groupMatch = !ft || groupName.toLowerCase().includes(ft);
+      if (!groupMatch && filteredDocs.length === 0) return;
+      hasVisible = true;
+      const groupOpen = groupMatch || filteredDocs.length > 0;
+
+      html += '<div class="tree-item group">';
+      html += `<div class="tree-row" onclick="toggleGroup('${escapeHtml(groupName)}')">`;
+      html += `<span class="tree-toggle-icon ${groupOpen ? 'expanded' : ''}">▶</span>`;
+      html += `<span class="tree-icon">📂</span>`;
+      html += `<span class="tree-name">${escapeHtml(groupName)}</span>`;
+      html += '</div>';
+      html += `<div class="tree-children ${groupOpen ? 'expanded' : ''}" data-group="${escapeHtml(groupName)}">`;
+      (groupMatch ? docs : filteredDocs).forEach(doc => {
+        const isActive = doc.id === currentDocId;
+        const match = doc.name.toLowerCase().includes(ft);
+        html += '<div class="tree-item doc">';
+        html += `<div class="tree-row ${isActive ? 'active' : ''}${!match && ft ? ' faded' : ''}" onclick="navigateToDoc(${doc.id})">`;
+        html += `<span class="tree-icon">📄</span>`;
+        html += `<span class="tree-name">${escapeHtml(doc.name)}</span>`;
+        html += '</div></div>';
+      });
+      html += '</div></div>';
+    });
+
+    if (content.docs.length > 0) {
+      const filteredDocs = ft ? content.docs.filter(d => d.name.toLowerCase().includes(ft)) : content.docs;
+      if (filteredDocs.length > 0) hasVisible = true;
+      filteredDocs.forEach(doc => {
+        const isActive = doc.id === currentDocId;
+        html += '<div class="tree-item doc" style="padding-left:8px;">';
+        html += `<div class="tree-row ${isActive ? 'active' : ''}" onclick="navigateToDoc(${doc.id})">`;
+        html += `<span class="tree-icon">📄</span>`;
+        html += `<span class="tree-name">${escapeHtml(doc.name)}</span>`;
+        html += '</div></div>';
+      });
+    }
+
+    container.innerHTML = hasVisible ? html : '<div class="tree-empty">Ничего не найдено</div>';
+  }
+
+  function onTreeSearch() {
+    renderTree(document.getElementById('treeSearchInput').value);
+  }
+
+  function toggleGroup(groupName) {
+    const children = document.querySelector(`.tree-children[data-group="${CSS.escape(groupName)}"]`);
+    if (children) {
+      children.classList.toggle('expanded');
+      const icon = children.previousElementSibling?.querySelector('.tree-toggle-icon');
+      if (icon) icon.classList.toggle('expanded');
+    }
+  }
+
+  function navigateToDoc(id) {
+    if (currentDocId !== null && currentDocId !== id) {
+      if (!confirm('Перейти к другому документу? Несохранённые изменения будут потеряны.')) return;
+    }
+    if (currentDocId === null) {
+      location.href = 'document-viewer.html?docId=' + id;
+    } else {
+      saveDocumentInternal(() => { location.href = 'document-viewer.html?docId=' + id; });
+    }
+  }
+
+  // --- Editor ---
+  function wrapText(before, after) {
+    const start = editor.selectionStart, end = editor.selectionEnd;
+    const selected = editor.value.substring(start, end);
+    editor.setRangeText(before + selected + after);
+    editor.focus();
+    editor.selectionStart = start + before.length;
+    editor.selectionEnd = start + before.length + selected.length;
+    renderPreview();
+  }
+
+  function insertAtCursor(text) {
+    const start = editor.selectionStart;
+    editor.setRangeText(text);
+    editor.focus();
+    editor.selectionStart = editor.selectionEnd = start + text.length;
+    renderPreview();
+  }
+
+  function insertImage() {
+    const url = prompt('Enter image URL:');
+    if (url) {
+      const alt = prompt('Enter alt text (optional):') || 'image';
+      insertAtCursor(`![${alt}](${url})`);
+    }
+  }
+
+  function renderPreview() {
+    const raw = editor.value;
+    let html = '';
+    let inCodeBlock = false, codeBuffer = [], inList = false;
+    const lines = raw.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+      if (line.startsWith('```')) {
+        if (inCodeBlock) {
+          html += '<pre><code>' + escapeHtml(codeBuffer.join('\n')) + '</code></pre>\n';
+          codeBuffer = []; inCodeBlock = false;
+        } else {
+          if (inList) { html += '</ul>\n'; inList = false; }
+          inCodeBlock = true;
+        }
+        continue;
+      }
+      if (inCodeBlock) { codeBuffer.push(line); continue; }
+      let processed = line;
+      if (/^>\s?/.test(processed)) {
+        if (inList) { html += '</ul>\n'; inList = false; }
+        processed = processed.replace(/^>\s?/, '');
+        processed = parseInline(processed);
+        html += '<blockquote>' + processed + '</blockquote>\n';
+        continue;
+      }
+      const headingMatch = processed.match(/^(#{1,6})\s+(.+)$/);
+      if (headingMatch) {
+        if (inList) { html += '</ul>\n'; inList = false; }
+        const level = headingMatch[1].length;
+        const text = parseInline(headingMatch[2]);
+        html += `<h${level}>${text}</h${level}>\n`;
+        continue;
+      }
+      if (/^(-{3,}|\*{3,})$/.test(processed.trim())) {
+        if (inList) { html += '</ul>\n'; inList = false; }
+        html += '<hr>\n';
+        continue;
+      }
+      if (/^[-*+]\s/.test(processed)) {
+        if (!inList) { html += '<ul>\n'; inList = true; }
+        processed = processed.replace(/^[-*+]\s/, '');
+        processed = parseInline(processed);
+        html += '<li>' + processed + '</li>\n';
+        continue;
+      }
+      if (/^\d+\.\s/.test(processed)) {
+        if (!inList) { html += '<ol>\n'; inList = true; }
+        processed = processed.replace(/^\d+\.\s/, '');
+        processed = parseInline(processed);
+        html += '<li>' + processed + '</li>\n';
+        continue;
+      }
+      if (inList) { html += '</ul>\n'; inList = false; }
+      if (processed.trim() === '') { html += '\n'; continue; }
+      html += '<p>' + parseInline(processed) + '</p>\n';
+    }
+    if (inCodeBlock) html += '<pre><code>' + escapeHtml(codeBuffer.join('\n')) + '</code></pre>\n';
+    if (inList) html += '</ul>\n';
+    preview.innerHTML = html;
+  }
+
+  function parseInline(text) {
+    let result = escapeHtml(text);
+    result = result.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="preview-img">');
+    result = result.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+    result = result.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    result = result.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    result = result.replace(/`([^`]+)`/g, '<code>$1</code>');
+    return result;
+  }
+
+  function updateHeaderTitle() {
+    const title = document.getElementById('docTitleField').value.trim() || 'Untitled';
+    document.getElementById('editorTitle').textContent = title;
+  }
+
+  function updateStatusBadge() {
+    const status = document.getElementById('docStatusField').value;
+    const badge = document.getElementById('statusBadge');
+    badge.textContent = status;
+    badge.style.background = status === 'Draft' ? '#FEF3C7' : status === 'Published' ? '#DCFCE7' : '#FEE2E2';
+    badge.style.color = status === 'Draft' ? '#92400E' : status === 'Published' ? '#166534' : '#991B1B';
+  }
+
+  function saveDocumentInternal(callback) {
+    if (currentDocId === null) { showToast('No document loaded'); return; }
+    const stored = sessionStorage.getItem('documentsData');
+    if (!stored) { showToast('Error: document store not found'); return; }
+    let data;
+    try { data = JSON.parse(stored); } catch(e) { showToast('Error reading store'); return; }
+    const idx = data.findIndex(d => d.id === currentDocId);
+    if (idx === -1) { showToast('Document not found'); return; }
+    data[idx].title = document.getElementById('docTitleField').value.trim();
+    data[idx].space = document.getElementById('docSpaceField').value;
+    data[idx].status = document.getElementById('docStatusField').value;
+    data[idx].content = editor.value;
+    data[idx].updated = new Date().toISOString().slice(0, 10);
+    sessionStorage.setItem('documentsData', JSON.stringify(data));
+    showToast('Document saved');
+    if (callback) callback();
+  }
+
+  function saveDocument() { saveDocumentInternal(); }
+
+  function loadDocument(docId) {
+    const stored = sessionStorage.getItem('documentsData');
+    if (!stored) return;
+    let data;
+    try { data = JSON.parse(stored); } catch(e) { return; }
+    const doc = data.find(d => d.id === docId);
+    if (!doc) return;
+
+    currentDocId = docId;
+    selectedSpace = doc.space;
+    document.getElementById('spaceSearchInput').value = selectedSpace;
+    document.getElementById('docTitleField').value = doc.title;
+    document.getElementById('docSpaceField').value = doc.space;
+    document.getElementById('docStatusField').value = doc.status;
+    document.getElementById('authorField').textContent = doc.author;
+    editor.value = doc.content || '';
+    updateHeaderTitle();
+    updateStatusBadge();
+    renderPreview();
+    document.getElementById('treeSearchInput').value = '';
+    renderTree('');
+  }
+
+  editor.addEventListener('input', renderPreview);
+
+  editor.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      saveDocument();
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const docId = params.get('docId');
+    if (docId) {
+      loadDocument(Number(docId));
+    } else {
+      document.getElementById('spaceSearchInput').value = selectedSpace;
+      renderTree('');
+      editor.value = window.__INITIAL_CONTENT__ || '';
+      renderPreview();
+    }
+    document.addEventListener('click', (e) => { if (!e.target.closest('.space-selector')) closeSpaceDropdown(); });
+    window.addEventListener('beforeunload', function(e) { e.preventDefault(); e.returnValue = ''; });
+  });
+
+  window.__INITIAL_CONTENT__ = `# Документация API
+
+## Введение
+
+Данный документ описывает **REST API** для управления контентом.
+
+### Базовый URL
+
+\`\`\`
+https://api.example.com/v1
+\`\`\`
+
+## Эндпоинты
+
+- \`GET /documents\` — получить список документов
+- \`POST /documents\` — создать новый документ
+- \`PUT /documents/{id}\` — обновить документ
+
+### Пример запроса
+
+\`\`\`json
+{
+  "title": "Мой документ",
+  "content": "# Hello World",
+  "status": "Draft"
+}
+\`\`\`
+
+## Форматирование
+
+*Поддерживается* **жирный** текст, \`код\`, списки и изображения:
+
+![Logo](https://placehold.co/600x200/2563EB/FFFFFF?text=Wiki+Preview)
+
+> Примечание: предпросмотр обновляется в реальном времени.`;
+</script>
+</body>
+</html>
