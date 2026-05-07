@@ -7,11 +7,15 @@
 * **Стек/Инструменты:** Java 17+, Spring Boot, Spring Security, JWT (jjwt), Spring Data JPA, BCrypt, PostgreSQL 18.
 * **Архитектурные аспекты:**
   * Реализация сущности `User` в точном соответствии со схемой данных `120.data-model.md` (Таблица `users`):
-    * `id`, `login`, `password_hash`, `email`, `role` (`Admin`, `Editor`, `Reader`), `created_at`, `updated_at`.
+    * `id`, `login`, `password_hash`, `email`, `role` (`GUEST`, `READER`, `EDITOR`), `is_admin` (boolean), `created_at`, `updated_at`.
   * Интеграция подсистемы **Issuer** (генерация JWT при логине) и **Validator** (проверка JWT, извлеченного из Cookie, при каждом запросе).
   * **Stateless Sessions:** `SessionCreationPolicy.STATELESS` — сервер не хранит сессию.
   * Хранение паролей с использованием алгоритма BCrypt (соответствует полю `password_hash` в БД).
-  * **JWT состав:** В токен включается claim `role` со значением роли пользователя (см. `070.role-matrix.md`). При валидации токена Spring Security извлекает роль из JWT для принятия решений об авторизации.
+  * **JWT состав:** В токен включаются claims:
+    * `role` — глобальная роль пользователя (`GUEST`, `READER`, `EDITOR`)
+    * `is_admin` — флаг администратора (boolean)
+    * `sub` — идентификатор пользователя (login или id)
+  * При валидации токена Spring Security извлекает оба claims для принятия решений об авторизации.
 * **Инфраструктура/Конфигурация:**
   * Настройка Spring Security для защиты REST API и MVC эндпоинтов.
   * Конфигурация параметров JWT в `application.properties` (секретный ключ, время жизни токена).
@@ -25,7 +29,7 @@
 * **When:** Отправлен POST-запрос на `/api/login` с корректными `login` и `password`.
 * **Then:** 
   1. Система сверяет пароль с `password_hash` (BCrypt).
-  2. Система генерирует JWT с claim `role`.
+  2. Система генерирует JWT с claims `role` и `is_admin`.
   3. Система возвращает ответ `200 OK`.
   4. В ответе присутствует заголовок `Set-Cookie` с именем `JWT`, значением `<token>`, флагами `HttpOnly` (защита от XSS) и `Secure` (для HTTPS).
 
@@ -46,8 +50,8 @@
 * **Then:** 
   1. Фильтр `JwtCookieAuthenticationFilter` извлекает токен из Cookie.
   2. Система успешно валидирует токен (подпись, срок действия).
-  3. Система извлекает роль из claim `role`.
-  4. Запрос выполняется в соответствии с правами роли (см. `070.role-matrix.md`).
+  3. Система извлекает `role` и `is_admin` из claims.
+  4. Запрос выполняется в соответствии с правами (см. `070.role-matrix.md`).
 
 ### Сценарий 5: Истекший токен
 * **Given:** JWT-токен в Cookie `JWT` истек (превышено время жизни `expiration`).

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Content Management — Documents (US1.1.2)</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+  <div class="layout">
+    <div class="sidebar">
+      <div class="space-header">
+        <h2>📦 Пространство</h2>
+        <div class="space-actions">
+          <button onclick="location.href='../admin-panel/spaces.html'" title="Управление пространствами">⚙️</button>
+        </div>
+      </div>
+      <div class="space-selector">
+        <div class="space-search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="spaceSearchInput" placeholder="Выберите пространство..." oninput="onSpaceSearchInput()" onfocus="openSpaceDropdown()" autocomplete="off">
+        </div>
+        <div class="space-dropdown" id="spaceDropdown"></div>
+      </div>
+      <div class="sidebar-search">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="treeSearchInput" placeholder="Поиск в дереве..." oninput="onTreeSearch()" autocomplete="off">
+      </div>
+      <div class="tree-nav" id="treeNav">
+        <div class="tree-empty">Выберите пространство</div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="header">
+        <h1>Documents</h1>
+        <button class="button-primary" id="createBtn" onclick="openCreateModal()">+ Create Document</button>
+      </div>
+
+      <div id="documentsSection">
+        <div class="filter-bar">
+          <div class="filter-group" style="flex:1; min-width:200px;">
+            <label>Search</label>
+            <input type="text" id="searchInput" placeholder="Search by title...">
+          </div>
+          <div class="date-filter-group">
+            <div class="filter-group">
+              <label>Date From</label>
+              <input type="date" id="dateFromInput">
+            </div>
+            <div class="filter-group">
+              <label>Date To</label>
+              <input type="date" id="dateToInput">
+            </div>
+          </div>
+          <div class="filter-group" style="min-width:140px;">
+            <label>Status</label>
+            <select id="statusFilter">
+              <option value="">All</option>
+              <option value="Draft">Draft</option>
+              <option value="Published">Published</option>
+              <option value="Deleted">Deleted</option>
+            </select>
+          </div>
+          <div class="filter-group" style="min-width:160px;">
+            <label>Space</label>
+            <select id="spaceFilter">
+              <option value="">All Spaces</option>
+              <option value="Project Alpha">Project Alpha</option>
+              <option value="Project Beta">Project Beta</option>
+              <option value="Knowledge Base">Knowledge Base</option>
+            </select>
+          </div>
+          <button class="button-primary" id="applyFiltersBtn" style="margin-top:22px;">Apply</button>
+          <button class="button-secondary" id="clearFiltersBtn" style="margin-top:22px;">Clear</button>
+        </div>
+
+        <div style="overflow-x:auto;">
+          <table id="documentsTable">
+            <thead>
+              <tr>
+                <th data-sort="id">ID</th>
+                <th data-sort="title">Title</th>
+                <th data-sort="space">Space</th>
+                <th data-sort="author">Author</th>
+                <th data-sort="status">Status</th>
+                <th data-sort="updated">Updated</th>
+                <th style="min-width:180px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="documentsTbody"></tbody>
+          </table>
+        </div>
+
+        <div class="pagination" id="documentsPagination">
+          <button class="button-secondary" id="documentsPrevBtn">Prev</button>
+          <span id="documentsPageInfo">Page 1 of 1</span>
+          <select id="documentsPerPageSelect">
+            <option value="5">5 per page</option>
+            <option value="10" selected>10 per page</option>
+            <option value="20">20 per page</option>
+            <option value="50">50 per page</option>
+            <option value="All">All</option>
+          </select>
+          <button class="button-secondary" id="documentsNextBtn">Next</button>
+        </div>
+        <div class="states">
+          <p id="documentsEmptyMsg" style="display:none; text-align:center;">No documents found</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Modal -->
+  <div class="modal" id="createModal">
+    <div class="modal-content" style="width:480px;">
+      <h3>Create Document</h3>
+      <div class="form-group">
+        <label>Title *</label>
+        <input type="text" id="createDocTitle" placeholder="Document title">
+      </div>
+      <div class="form-group">
+        <label>Space *</label>
+        <select id="createDocSpace">
+          <option value="Project Alpha">Project Alpha</option>
+          <option value="Project Beta">Project Beta</option>
+          <option value="Knowledge Base">Knowledge Base</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Author *</label>
+        <input type="text" id="createDocAuthor" placeholder="Author login">
+      </div>
+      <p class="meta-info" style="margin-bottom:16px;">Content will be created as Draft and opened in the Wiki Editor.
+      </p>
+      <div style="display:flex; gap:12px; justify-content:flex-end;">
+        <button class="button-primary" id="saveCreateBtn">Create & Open Editor</button>
+        <button class="button-secondary" id="closeCreateModalBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Properties Modal -->
+  <div class="modal" id="propertiesModal">
+    <div class="modal-content" style="width:480px;">
+      <h3>Document Properties</h3>
+      <div class="form-group">
+        <label>Title *</label>
+        <input type="text" id="propDocTitle" placeholder="Document title">
+      </div>
+      <div class="form-group">
+        <label>Space *</label>
+        <select id="propDocSpace">
+          <option value="Project Alpha">Project Alpha</option>
+          <option value="Project Beta">Project Beta</option>
+          <option value="Knowledge Base">Knowledge Base</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Author *</label>
+        <input type="text" id="propDocAuthor" placeholder="Author login">
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="propDocStatus">
+          <option value="Draft">Draft</option>
+          <option value="Published">Published</option>
+          <option value="Deleted">Deleted</option>
+        </select>
+      </div>
+      <div style="display:flex; gap:12px; justify-content:flex-end;">
+        <button class="button-primary" id="savePropertiesBtn">Save</button>
+        <button class="button-secondary" id="closePropertiesModalBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal" id="deleteModal">
+    <div class="modal-content">
+      <p id="deleteModalMsg">Are you sure you want to delete this document?</p>
+      <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:20px;">
+        <button class="button-secondary" id="cancelDeleteBtn">Cancel</button>
+        <button class="button-danger" id="confirmDeleteBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Success</div>
+
+  <script>
+    let documentsData = [
+      { id: 1, title: 'API Documentation', space: 'Project Alpha', author: 'johndoe', content: '# API Documentation\n\n## Overview\nREST API for content management.', status: 'Published', updated: '2025-04-28' },
+      { id: 2, title: 'Architecture Overview', space: 'Project Alpha', author: 'alice', content: '# Architecture\n\n## System components\n...', status: 'Published', updated: '2025-04-25' },
+      { id: 3, title: 'Development Setup', space: 'Knowledge Base', author: 'bob', content: '## Prerequisites\n\n- Java 17+\n- Maven\n- PostgreSQL 18\n\n## Configuration\n\n```\nspring.datasource.url=jdbc:postgresql://localhost:5432/knowledge_base\n```', status: 'Draft', updated: '2025-05-01' },
+      { id: 4, title: 'Testing Strategy', space: 'Project Beta', author: 'alice', content: '# Testing Strategy\n\n## Unit Tests\n...', status: 'Draft', updated: '2025-04-30' },
+      { id: 5, title: 'Deployment Guide', space: 'Project Beta', author: 'charlie', content: '# Deployment\n\n## Steps\n...', status: 'Published', updated: '2025-04-20' },
+      { id: 6, title: 'User Manual v2', space: 'Knowledge Base', author: 'johndoe', content: '# User Manual\n\n## Getting Started\n...', status: 'Deleted', updated: '2025-03-15' },
+      { id: 7, title: 'Security Policy', space: 'Project Alpha', author: 'charlie', content: '# Security\n\n## Access control\n...', status: 'Published', updated: '2025-04-29' }
+    ];
+
+    let selectedSpace = 'Project Alpha';
+
+    const spaceList = [
+      { name: 'Project Alpha', owner: 'johndoe' },
+      { name: 'Project Beta', owner: 'alice' },
+      { name: 'Knowledge Base', owner: 'bob' }
+    ];
+
+    const spaceContents = {
+      'Project Alpha': {
+        groups: {
+          'Архитектура': [
+            { name: 'Architecture Overview', id: 2 },
+            { name: 'Security Policy', id: 7 }
+          ]
+        },
+        docs: [
+          { name: 'API Documentation', id: 1 }
+        ]
+      },
+      'Project Beta': {
+        groups: {
+          'Тестирование': [
+            { name: 'Testing Strategy', id: 4 }
+          ]
+        },
+        docs: [
+          { name: 'Deployment Guide', id: 5 }
+        ]
+      },
+      'Knowledge Base': {
+        groups: {},
+        docs: [
+          { name: 'Development Setup', id: 3 },
+          { name: 'User Manual v2', id: 6 }
+        ]
+      }
+    };
+
+    let documentsState = { sortKey: 'id', sortDir: 'asc', page: 1, rowsPerPage: 10, searchTerm: '', dateFrom: '', dateTo: '', statusFilter: '', spaceFilter: '' };
+    let propertiesDocId = null;
+    let pendingDeleteId = null;
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.style.display = 'block';
+      setTimeout(() => toast.style.display = 'none', 2000);
+    }
+
+    function escapeHtml(str) { return String(str).replace(/[&<>]/g, function (m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
+
+    // --- Space Selector ---
+    function renderSpaceDropdown(filterText) {
+      const dropdown = document.getElementById('spaceDropdown');
+      const filter = (filterText || '').toLowerCase();
+      const filtered = filter ? spaceList.filter(s => s.name.toLowerCase().includes(filter)) : spaceList;
+
+      if (filtered.length === 0) {
+        dropdown.innerHTML = '<div class="space-option-empty">Пространства не найдены</div>';
+      } else {
+        dropdown.innerHTML = filtered.map(s =>
+          `<div class="space-option ${s.name === selectedSpace ? 'active' : ''}" onclick="selectSpace('${escapeHtml(s.name)}')">📁 ${escapeHtml(s.name)}</div>`
+        ).join('');
+      }
+    }
+
+    function openSpaceDropdown() {
+      document.getElementById('spaceDropdown').classList.add('open');
+      renderSpaceDropdown(document.getElementById('spaceSearchInput').value);
+    }
+
+    function closeSpaceDropdown() {
+      document.getElementById('spaceDropdown').classList.remove('open');
+    }
+
+    function onSpaceSearchInput() {
+      renderSpaceDropdown(document.getElementById('spaceSearchInput').value);
+      document.getElementById('spaceDropdown').classList.add('open');
+    }
+
+    function selectSpace(name) {
+      selectedSpace = name;
+      document.getElementById('spaceSearchInput').value = name;
+      document.getElementById('treeSearchInput').value = '';
+      closeSpaceDropdown();
+      renderTree('');
+    }
+
+    // --- Tree ---
+    function renderTree(filterText) {
+      const container = document.getElementById('treeNav');
+      const content = spaceContents[selectedSpace];
+      if (!content) { container.innerHTML = '<div class="tree-empty">Нет данных</div>'; return; }
+
+      const ft = (filterText || '').toLowerCase().trim();
+      let html = '';
+      let hasVisible = false;
+
+      const groupEntries = Object.entries(content.groups);
+      groupEntries.forEach(([groupName, docs]) => {
+        const filteredDocs = ft ? docs.filter(d => d.name.toLowerCase().includes(ft)) : docs;
+        const groupMatch = !ft || groupName.toLowerCase().includes(ft);
+        if (!groupMatch && filteredDocs.length === 0) return;
+        hasVisible = true;
+        const groupOpen = groupMatch || filteredDocs.length > 0;
+
+        html += '<div class="tree-item group">';
+        html += `<div class="tree-row" onclick="toggleGroup('${escapeHtml(groupName)}')">`;
+        html += `<span class="tree-toggle-icon ${groupOpen ? 'expanded' : ''}">▶</span>`;
+        html += `<span class="tree-icon">📂</span>`;
+        html += `<span class="tree-name">${escapeHtml(groupName)}</span>`;
+        html += '</div>';
+        html += `<div class="tree-children ${groupOpen ? 'expanded' : ''}" data-group="${escapeHtml(groupName)}">`;
+        (groupMatch ? docs : filteredDocs).forEach(doc => {
+          const match = doc.name.toLowerCase().includes(ft);
+          html += '<div class="tree-item doc">';
+          html += `<div class="tree-row${match ? '' : ' faded'}" onclick="openDoc(${doc.id})">`;
+          html += `<span class="tree-icon">📄</span>`;
+          html += `<span class="tree-name">${escapeHtml(doc.name)}</span>`;
+          html += '</div></div>';
+        });
+        html += '</div></div>';
+      });
+
+      if (content.docs.length > 0) {
+        const filteredDocs = ft ? content.docs.filter(d => d.name.toLowerCase().includes(ft)) : content.docs;
+        if (filteredDocs.length > 0) hasVisible = true;
+        filteredDocs.forEach(doc => {
+          html += '<div class="tree-item doc" style="padding-left:8px;">';
+          html += `<div class="tree-row" onclick="openDoc(${doc.id})">`;
+          html += `<span class="tree-icon">📄</span>`;
+          html += `<span class="tree-name">${escapeHtml(doc.name)}</span>`;
+          html += '</div></div>';
+        });
+      }
+
+      container.innerHTML = hasVisible ? html : '<div class="tree-empty">Ничего не найдено</div>';
+    }
+
+    function onTreeSearch() {
+      renderTree(document.getElementById('treeSearchInput').value);
+    }
+
+    function toggleGroup(groupName) {
+      const children = document.querySelector(`.tree-children[data-group="${CSS.escape(groupName)}"]`);
+      if (children) {
+        children.classList.toggle('expanded');
+        const icon = children.previousElementSibling?.querySelector('.tree-toggle-icon');
+        if (icon) icon.classList.toggle('expanded');
+      }
+    }
+
+    function openDoc(id) { location.href = 'document-viewer.html?docId=' + id; }
+
+    // --- Document CRUD ---
+    function getFilteredDocuments() {
+      return documentsData.filter(doc => {
+        if (documentsState.searchTerm && !doc.title.toLowerCase().includes(documentsState.searchTerm)) return false;
+        if (documentsState.statusFilter && doc.status !== documentsState.statusFilter) return false;
+        if (documentsState.spaceFilter && doc.space !== documentsState.spaceFilter) return false;
+        if (documentsState.dateFrom && doc.updated < documentsState.dateFrom) return false;
+        if (documentsState.dateTo && doc.updated > documentsState.dateTo) return false;
+        return true;
+      });
+    }
+
+    function renderDocuments() {
+      let filtered = getFilteredDocuments();
+      filtered.sort((a, b) => {
+        let valA = a[documentsState.sortKey];
+        let valB = b[documentsState.sortKey];
+        if (typeof valA === 'string') { valA = valA.toLowerCase(); valB = valB.toLowerCase(); }
+        if (valA < valB) return documentsState.sortDir === 'asc' ? -1 : 1;
+        if (valA > valB) return documentsState.sortDir === 'asc' ? 1 : -1;
+        return 0;
+      });
+
+      let perPage = documentsState.rowsPerPage === 'All' ? filtered.length : Number(documentsState.rowsPerPage);
+      if (perPage === 0) perPage = filtered.length;
+      const totalPages = perPage === 0 ? 1 : Math.ceil(filtered.length / perPage);
+      if (documentsState.page > totalPages) documentsState.page = totalPages;
+      const start = (documentsState.page - 1) * perPage;
+      const pageData = perPage === 0 ? filtered : filtered.slice(start, start + perPage);
+
+      const tbody = document.getElementById('documentsTbody');
+      if (pageData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No documents</td></tr>';
+      } else {
+        tbody.innerHTML = pageData.map(d => `
+        <tr>
+          <td>${d.id}</td>
+          <td><strong>${escapeHtml(d.title)}</strong></td>
+          <td>${escapeHtml(d.space)}</td>
+          <td>${escapeHtml(d.author)}</td>
+          <td><span class="badge ${d.status.toLowerCase()}">${d.status}</span></td>
+          <td>${escapeHtml(d.updated)}</td>
+          <td class="actions">
+            <a href="document-viewer.html?docId=${d.id}" class="button-primary" style="padding:6px 12px; text-decoration:none; display:inline-block;">View</a>
+            <button class="button-primary" onclick="openEditor(${d.id})" style="padding:6px 12px;">Open Editor</button>
+            <button class="button-secondary" onclick="openProperties(${d.id})" style="padding:6px 12px;">Properties</button>
+            <button class="button-danger" onclick="deleteDocumentPrompt(${d.id})" style="padding:6px 12px;">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+      }
+      document.getElementById('documentsPageInfo').innerText = `Page ${documentsState.page} of ${totalPages}`;
+      document.getElementById('documentsPrevBtn').disabled = documentsState.page <= 1;
+      document.getElementById('documentsNextBtn').disabled = documentsState.page >= totalPages;
+      document.getElementById('documentsEmptyMsg').style.display = filtered.length === 0 ? 'block' : 'none';
+
+      document.querySelectorAll('#documentsTable th[data-sort]').forEach(th => th.classList.remove('sort-asc', 'sort-desc'));
+      const activeTh = document.querySelector(`#documentsTable th[data-sort="${documentsState.sortKey}"]`);
+      if (activeTh) activeTh.classList.add(`sort-${documentsState.sortDir}`);
+    }
+
+    function persistToSession() { sessionStorage.setItem('documentsData', JSON.stringify(documentsData)); }
+
+    function loadFromSession() {
+      const stored = sessionStorage.getItem('documentsData');
+      if (stored) { try { documentsData = JSON.parse(stored); } catch (e) {} }
+    }
+
+    function openCreateModal() {
+      document.getElementById('createModal').style.display = 'flex';
+      document.getElementById('createDocTitle').value = '';
+      document.getElementById('createDocSpace').value = 'Project Alpha';
+      document.getElementById('createDocAuthor').value = '';
+    }
+
+    function createAndOpenEditor() {
+      const title = document.getElementById('createDocTitle').value.trim();
+      const space = document.getElementById('createDocSpace').value;
+      const author = document.getElementById('createDocAuthor').value.trim();
+      if (!title || !author) { showToast('Title and Author are required'); return; }
+
+      const newId = documentsData.length ? Math.max(...documentsData.map(d => d.id)) + 1 : 1;
+      const now = new Date().toISOString().slice(0, 10);
+      documentsData.push({ id: newId, title, space, author, content: '', status: 'Draft', updated: now });
+      persistToSession();
+      renderDocuments();
+      document.getElementById('createModal').style.display = 'none';
+      location.href = 'wiki-editor.html?docId=' + newId;
+    }
+
+    function openEditor(id) { persistToSession(); location.href = 'wiki-editor.html?docId=' + id; }
+
+    function openProperties(id) {
+      const doc = documentsData.find(d => d.id === id);
+      if (!doc) return;
+      propertiesDocId = id;
+      document.getElementById('propDocTitle').value = doc.title;
+      document.getElementById('propDocSpace').value = doc.space;
+      document.getElementById('propDocAuthor').value = doc.author;
+      document.getElementById('propDocStatus').value = doc.status;
+      document.getElementById('propertiesModal').style.display = 'flex';
+    }
+
+    function saveProperties() {
+      const title = document.getElementById('propDocTitle').value.trim();
+      const space = document.getElementById('propDocSpace').value;
+      const author = document.getElementById('propDocAuthor').value.trim();
+      const status = document.getElementById('propDocStatus').value;
+      if (!title || !author) { showToast('Title and Author are required'); return; }
+
+      const idx = documentsData.findIndex(d => d.id === propertiesDocId);
+      if (idx !== -1) {
+        documentsData[idx].title = title;
+        documentsData[idx].space = space;
+        documentsData[idx].author = author;
+        documentsData[idx].status = status;
+        documentsData[idx].updated = new Date().toISOString().slice(0, 10);
+        showToast(`Properties for "${title}" updated`);
+        renderDocuments();
+      }
+      document.getElementById('propertiesModal').style.display = 'none';
+    }
+
+    function deleteDocumentPrompt(id) {
+      const doc = documentsData.find(d => d.id === id);
+      if (!doc) return;
+      pendingDeleteId = id;
+      document.getElementById('deleteModalMsg').innerText = `Are you sure you want to delete "${doc.title}"?`;
+      document.getElementById('deleteModal').style.display = 'flex';
+    }
+
+    function confirmDelete() {
+      const idx = documentsData.findIndex(d => d.id === pendingDeleteId);
+      if (idx !== -1) {
+        documentsData[idx].status = 'Deleted';
+        showToast(`Document "${documentsData[idx].title}" moved to trash (soft-delete)`);
+        renderDocuments();
+      }
+      document.getElementById('deleteModal').style.display = 'none';
+    }
+
+    function applyFilters() {
+      documentsState.searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+      documentsState.dateFrom = document.getElementById('dateFromInput').value;
+      documentsState.dateTo = document.getElementById('dateToInput').value;
+      if (documentsState.dateFrom && documentsState.dateTo && documentsState.dateFrom > documentsState.dateTo) {
+        showToast('Дата начала не может быть позже даты окончания');
+        return;
+      }
+      documentsState.statusFilter = document.getElementById('statusFilter').value;
+      documentsState.spaceFilter = document.getElementById('spaceFilter').value;
+      documentsState.page = 1;
+      renderDocuments();
+      showToast('Filters applied');
+    }
+
+    function clearFilters() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('dateFromInput').value = '';
+      document.getElementById('dateToInput').value = '';
+      document.getElementById('statusFilter').value = '';
+      document.getElementById('spaceFilter').value = '';
+      documentsState.searchTerm = '';
+      documentsState.dateFrom = '';
+      documentsState.dateTo = '';
+      documentsState.statusFilter = '';
+      documentsState.spaceFilter = '';
+      documentsState.page = 1;
+      renderDocuments();
+      showToast('Filters cleared');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadFromSession();
+      document.getElementById('spaceSearchInput').value = selectedSpace;
+      renderSpaceDropdown('');
+      renderTree('');
+      renderDocuments();
+
+      document.querySelectorAll('#documentsTable th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => {
+          const key = th.dataset.sort;
+          if (documentsState.sortKey === key) documentsState.sortDir = documentsState.sortDir === 'asc' ? 'desc' : 'asc';
+          else { documentsState.sortKey = key; documentsState.sortDir = 'asc'; }
+          renderDocuments();
+        });
+      });
+
+      document.getElementById('documentsPrevBtn').addEventListener('click', () => { if (documentsState.page > 1) { documentsState.page--; renderDocuments(); } });
+      document.getElementById('documentsNextBtn').addEventListener('click', () => {
+        let filtered = getFilteredDocuments();
+        let perPage = documentsState.rowsPerPage === 'All' ? filtered.length : Number(documentsState.rowsPerPage);
+        let totalPages = perPage === 0 ? 1 : Math.ceil(filtered.length / perPage);
+        if (documentsState.page < totalPages) { documentsState.page++; renderDocuments(); }
+      });
+      document.getElementById('documentsPerPageSelect').addEventListener('change', (e) => {
+        documentsState.rowsPerPage = e.target.value;
+        documentsState.page = 1;
+        renderDocuments();
+      });
+
+      document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
+      document.getElementById('clearFiltersBtn').addEventListener('click', clearFilters);
+      document.getElementById('searchInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') applyFilters(); });
+
+      document.getElementById('closeCreateModalBtn').addEventListener('click', () => document.getElementById('createModal').style.display = 'none');
+      document.getElementById('saveCreateBtn').addEventListener('click', createAndOpenEditor);
+      document.getElementById('closePropertiesModalBtn').addEventListener('click', () => document.getElementById('propertiesModal').style.display = 'none');
+      document.getElementById('savePropertiesBtn').addEventListener('click', saveProperties);
+      document.getElementById('cancelDeleteBtn').addEventListener('click', () => document.getElementById('deleteModal').style.display = 'none');
+      document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+
+      window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
+      document.addEventListener('click', (e) => { if (!e.target.closest('.space-selector')) closeSpaceDropdown(); });
+    });
+  </script>
+</body>
+
+</html>
