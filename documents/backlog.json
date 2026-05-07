@@ -104,7 +104,7 @@
             "type": "UserStory",
             "title": "Реализация RBAC",
             "as_a": "Администратор",
-            "i_want": "разграничивать права доступа через роли Admin, Editor, Reader",
+            "i_want": "разграничивать права доступа через роли GUEST, READER, EDITOR и флаг is_admin",
             "so_that": "контролировать действия пользователей в системе.",
             "assignees": "val-5",
             "complexity": 5,
