@@ -779,6 +779,21 @@
               "requirements_check": []
             },
             "children": []
+          },
+                    {
+            "id": "US1.3.3",
+            "type": "UserStory",
+            "title": "Скачивание вложенного файла",
+            "as_a": "Пользователь",
+            "i_want": "скачивать прикрепленные файлы из документов",
+            "so_that": "получать доступ к вложенным в документацию материалам.",
+            "assignees": "chudnik",
+            "complexity": 3,
+            "metadata": {
+              "tags": ["Content", "Management"],
+              "requirements_check": []
+            },
+            "children": []
           }
         ]
       },
