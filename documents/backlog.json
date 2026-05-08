@@ -388,6 +388,28 @@
               ]
             },
             "children": []
+          },
+          {
+            "id": "US4.3.2",
+            "type": "UserStory",
+            "title": "Настройка параметров SMTP и асинхронной рассылки",
+            "as_a": "Администратор",
+            "i_want": "настраивать параметры SMTP-сервера через панель администратора",
+            "so_that": "обеспечить работоспособность системы уведомлений.",
+            "assignees": "avekIT47",
+            "complexity": 4,
+            "metadata": {
+              "tags": ["Admin", "Configuration"],
+              "requirements_check": [
+                {
+                  "document": "base-requirements.md",
+                  "texts": [
+                    "Асинхронная система рассылок (уведомлений через Email/SMTP)."
+                  ]
+                }
+              ]
+            },
+            "children": []
           }
         ]
       },
