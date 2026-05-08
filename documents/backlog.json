@@ -729,6 +729,21 @@
               ]
             },
             "children": []
+          },
+          {
+            "id": "US1.3.2",
+            "type": "UserStory",
+            "title": "Удаление вложенного файла",
+            "as_a": "Редактор",
+            "i_want": "удалять ненужные вложенные файлы из документа",
+            "so_that": "поддерживать актуальность контента и экономить место в хранилище.",
+            "assignees": "chudnik",
+            "complexity": 3,
+            "metadata": {
+              "tags": ["Content", "Management"],
+              "requirements_check": []
+            },
+            "children": []
           }
         ]
       },
