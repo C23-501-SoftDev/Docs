@@ -452,6 +452,19 @@
               ]
             },
             "children": []
+          },
+          {
+            "id": "US4.4.2",
+            "type": "UserStory",
+            "title": "Документирование API через Swagger/OpenAPI",
+            "as_a": "Разработчик",
+            "i_want": "видеть актуальную документацию REST API в формате Swagger",
+            "so_that": "ускорить интеграцию фронтенда и написание клиентского кода.",
+            "assignees": "val-5",
+            "complexity": 3,
+            "metadata": {
+              "tags": ["Backend", "API", "Documentation"]
+            }
           }
         ]
       }
@@ -1347,6 +1360,19 @@
               "tags": ["Frontend", "Thymeleaf", "UI", "Diff"]
             },
             "children": []
+          },
+          {
+            "id": "US2.2.7",
+            "type": "UserStory",
+            "title": "Обеспечение транзакционности обновления БД и Git",
+            "as_a": "Система",
+            "i_want": "согласованно обновлять метаданные в БД и файлы в Git",
+            "so_that": "предотвратить рассинхронизацию данных при сбоях.",
+            "assignees": "Nigmatul",
+            "complexity": 8,
+            "metadata": {
+              "tags": ["Backend", "Reliability"]
+            }
           }
         ]
       }
