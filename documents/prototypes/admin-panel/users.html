@@ -120,17 +120,6 @@
   </div>
 </div>
 
-<!-- Delete Modal -->
-<div class="modal" id="deleteModal">
-  <div class="modal-content">
-    <p>Are you sure you want to delete this item?</p>
-    <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:20px;">
-      <button class="button-secondary" id="cancelDeleteBtn">Cancel</button>
-      <button class="button-danger" id="confirmDeleteBtn">Delete</button>
-    </div>
-  </div>
-</div>
-
 <div class="toast" id="toast">Success</div>
 
 <script>
@@ -144,18 +133,10 @@
   ];
 
   let usersState = { sortKey: 'id', sortDir: 'asc', page: 1, rowsPerPage: 10, roleFilters: [], searchTerm: '' };
-  let editingUserId = null;
-  let pendingDeleteId = null;
+    let editingUserId = null;
 
   // Current admin id (charlie — id=4) for self-demotion protection
   const CURRENT_ADMIN_ID = 4;
-
-  // Simulated restrictions for ON DELETE RESTRICT:
-  // id=1 (johndoe) is owner of "Project Alpha" space, id=2 (alice) is author of documents
-  const userRestrictions = {
-    1: 'user is owner of space "Project Alpha"',
-    2: 'user is author of documents'
-  };
 
   function showToast(msg, isError) {
     const toast = document.getElementById('toast');
@@ -165,12 +146,8 @@
     setTimeout(() => { toast.style.display = 'none'; toast.className = 'toast'; }, 2000);
   }
 
-  function isCurrentAdmin(id) {
+    function isCurrentAdmin(id) {
     return id === CURRENT_ADMIN_ID;
-  }
-
-  function getDeleteRestriction(userId) {
-    return userRestrictions[userId] || null;
   }
 
   function updateAccessUI() {
@@ -229,14 +206,13 @@
           <td>${u.roles.map(r => `<span class="badge ${r}">${r}</span>`).join('')}</td>
           <td><span class="badge ${u.status.toLowerCase()}">${u.status}</span></td>
                     <td class="actions">
-            <button class="button-secondary" onclick="editUser(${u.id})">Edit</button>
-            <select class="role-quick-select" onchange="quickChangeRole(${u.id}, this.value)">
-              <option value="Admin" ${u.roles.includes('Admin') ? 'selected' : ''}>Admin</option>
-              <option value="Editor" ${u.roles.includes('Editor') ? 'selected' : ''}>Editor</option>
-              <option value="Reader" ${u.roles.includes('Reader') ? 'selected' : ''}>Reader</option>
-            </select>
-            <button class="button-danger" onclick="deleteUserPrompt(${u.id})">Delete</button>
-          </td>
+                                <button class="button-secondary" onclick="editUser(${u.id})">Edit</button>
+                                <select class="role-quick-select" onchange="quickChangeRole(${u.id}, this.value)">
+                                  <option value="Admin" ${u.roles.includes('Admin') ? 'selected' : ''}>Admin</option>
+                                  <option value="Editor" ${u.roles.includes('Editor') ? 'selected' : ''}>Editor</option>
+                                  <option value="Reader" ${u.roles.includes('Reader') ? 'selected' : ''}>Reader</option>
+                                </select>
+                              </td>
         </tr>
       `).join('');
     }
@@ -342,30 +318,7 @@
       renderUsers();
     }
 
-    function deleteUserPrompt(id) {
-      const restriction = getDeleteRestriction(id);
-      if (restriction) {
-        showToast('Cannot delete user: ' + restriction, true);
-        return;
-      }
-      pendingDeleteId = id;
-      document.getElementById('deleteModal').style.display = 'flex';
-    }
-
-  function confirmDelete() {
-    const idx = usersData.findIndex(u => u.id === pendingDeleteId);
-    if (idx !== -1) {
-      const login = usersData[idx].login;
-      usersData.splice(idx, 1);
-      showToast(`User "${login}" deleted`);
-      let filtered = getFilteredUsers();
-      let perPage = usersState.rowsPerPage === 'All' ? filtered.length : Number(usersState.rowsPerPage);
-      let totalPages = perPage === 0 ? 1 : Math.ceil(filtered.length / perPage);
-      if (usersState.page > totalPages) usersState.page = totalPages;
-      renderUsers();
-    }
-    document.getElementById('deleteModal').style.display = 'none';
-  }
+    
 
   document.addEventListener('DOMContentLoaded', () => {
     updateAccessUI();
