@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel - Groups</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <h2>Navigation</h2>
+    <ul>
+      <li><a href="index.html">Dashboard</a></li>
+      <li><a href="users.html">Users</a></li>
+      <li class="active"><a href="groups.html">Groups</a></li>
+      <li><a href="auth-setup.html">Auth & JWT</a></li>
+      <li><a href="spaces.html">Spaces</a></li>
+    </ul>
+  </div>
+
+  <div class="content">
+    <div class="header">
+      <h1>Groups</h1>
+      <button class="button-primary" id="createGroupBtn">+ Create Group</button>
+    </div>
+
+    <div class="role-selector-bar">
+      <label>Simulate role access:</label>
+      <select id="currentRoleSelector">
+        <option value="Admin" selected>Admin (full access)</option>
+        <option value="Editor">Editor (restricted)</option>
+        <option value="Reader">Reader (restricted)</option>
+      </select>
+      <span style="font-size:12px; color:#6B7280;">(UI elements hide for non-Admin)</span>
+    </div>
+
+    <div id="groupsSection" class="admin-section">
+      <div class="filter-bar">
+        <input type="text" id="searchInput" placeholder="Search by group name..." style="flex:1; max-width:260px;">
+        <button class="button-primary" id="applyFiltersBtn">Apply</button>
+        <button class="button-secondary" id="clearFiltersBtn">Clear</button>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table id="groupsTable">
+          <thead>
+            <tr>
+              <th data-sort="id">ID</th>
+              <th data-sort="name">Group Name</th>
+              <th data-sort="description">Description</th>
+
+
+
+              <th data-sort="status">Status</th>
+                            <th data-sort="memberCount">Members</th>
+                            <th data-sort="created">Created</th>
+                            <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="groupsTbody"></tbody>
+        </table>
+      </div>
+
+      <div class="pagination" id="groupsPagination">
+        <button class="button-secondary" id="groupsPrevBtn">Prev</button>
+        <span id="groupsPageInfo">Page 1 of 1</span>
+        <select id="groupsPerPageSelect">
+          <option value="5">5 per page</option>
+          <option value="10" selected>10 per page</option>
+          <option value="20">20 per page</option>
+          <option value="50">50 per page</option>
+          <option value="All">All</option>
+        </select>
+        <button class="button-secondary" id="groupsNextBtn">Next</button>
+      </div>
+      <div class="states"><p id="groupsEmptyMsg" style="display:none; text-align:center;">No groups found</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- Create/Edit Group Modal -->
+<div class="modal" id="groupModal">
+  <div class="modal-content">
+    <h3 id="groupModalTitle">Create Group</h3>
+    <div class="form-group">
+      <label>Group Name *</label>
+      <input type="text" id="groupName" placeholder="e.g. Developers, QA Team">
+    </div>
+    <div class="form-group">
+      <label>Description</label>
+      <textarea id="groupDesc" rows="2" style="width:100%;" placeholder="Brief description of the group"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Status</label>
+      <select id="groupStatus">
+        <option value="Active">Active</option>
+        <option value="Inactive">Inactive</option>
+      </select>
+    </div>
+    <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:16px;">
+      <button class="button-primary" id="saveGroupBtn">Save</button>
+      <button class="button-secondary" id="closeGroupModalBtn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Manage Members Modal -->
+<div class="modal" id="membersModal">
+  <div class="modal-content" style="width:520px;">
+    <h3 id="membersModalTitle">Manage Members: <span id="membersGroupName"></span></h3>
+
+    <!-- Add member -->
+    <div class="form-group" style="position:relative;">
+      <label>Add User</label>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="memberSearchInput" placeholder="Search user to add..." style="flex:1;" autocomplete="off">
+        <button class="button-primary" id="addMemberBtn">Add</button>
+      </div>
+      <div id="memberAutocomplete" class="autocomplete-dropdown"></div>
+    </div>
+
+    <!-- Members list -->
+    <div style="max-height:300px; overflow-y:auto; border:1px solid #E5E7EB; border-radius:8px; margin-top:8px;">
+      <table style="width:100%; border:none;">
+        <thead>
+          <tr>
+            <th style="padding:8px 12px; border-bottom:1px solid #E5E7EB;">Login</th>
+            <th style="padding:8px 12px; border-bottom:1px solid #E5E7EB;">Email</th>
+            <th style="padding:8px 12px; border-bottom:1px solid #E5E7EB; width:80px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="membersTbody"></tbody>
+      </table>
+    </div>
+
+    <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:16px;">
+      <button class="button-secondary" id="closeMembersModalBtn">Close</button>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="toast" id="toast">Success</div>
+
+<script>
+  // --- Mock data ---
+  const allUsers = [
+    { id: 1, login: 'johndoe', email: 'john@example.com', roles: ['Admin', 'Editor'] },
+    { id: 2, login: 'alice', email: 'alice@example.com', roles: ['Editor', 'Reader'] },
+    { id: 3, login: 'bob', email: 'bob@example.com', roles: ['Reader'] },
+    { id: 4, login: 'charlie', email: 'charlie@example.com', roles: ['Admin'] },
+    { id: 5, login: 'diana', email: 'diana@example.com', roles: ['Editor'] },
+    { id: 6, login: 'eve', email: 'eve@example.com', roles: ['Admin', 'Reader'] },
+    { id: 7, login: 'frank', email: 'frank@example.com', roles: ['Reader'] },
+    { id: 8, login: 'grace', email: 'grace@example.com', roles: ['Editor'] }
+  ];
+
+  let groupsData = [
+    { id: 1, name: 'Developers', description: 'Core development team', status: 'Active', members: [1, 4, 6], created: '2025-02-10' },
+    { id: 2, name: 'QA Team', description: 'Quality assurance engineers', status: 'Active', members: [2, 7], created: '2025-02-15' },
+    { id: 3, name: 'Designers', description: 'UI/UX designers', status: 'Active', members: [5, 8], created: '2025-03-01' },
+    { id: 4, name: 'Product Managers', description: 'Product owners and managers', status: 'Inactive', members: [3], created: '2025-03-05' }
+  ];
+
+  let groupsState = {
+    sortKey: 'id', sortDir: 'asc', page: 1, rowsPerPage: 10,
+    searchTerm: ''
+  };
+
+  let editingGroupId = null;      // null = create mode
+  let viewingGroupId = null;      // group whose members we're managing
+
+  let searchDebounceTimer = null;
+
+  // Helper: get user by id
+  function getUserById(id) {
+    return allUsers.find(u => u.id === id);
+  }
+
+  // Helper: get group by id
+  function getGroupById(id) {
+    return groupsData.find(g => g.id === id);
+  }
+
+  // --- UI helpers ---
+  function showToast(msg, isError) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.className = 'toast' + (isError ? ' toast-error' : '');
+    toast.style.display = 'block';
+    clearTimeout(toast._hideTimer);
+    toast._hideTimer = setTimeout(() => { toast.style.display = 'none'; toast.className = 'toast'; }, 2000);
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    });
+  }
+
+  // --- RBAC simulation ---
+  function updateAccessUI() {
+    const currentRole = document.getElementById('currentRoleSelector').value;
+    const section = document.getElementById('groupsSection');
+    const createBtn = document.getElementById('createGroupBtn');
+
+    if (currentRole === 'Admin') {
+      section.classList.remove('restricted-area');
+      createBtn.disabled = false;
+    } else {
+      section.classList.add('restricted-area');
+      createBtn.disabled = true;
+    }
+  }
+
+  // --- Render Groups Table ---
+  function getFilteredGroups() {
+    return groupsData.filter(g => {
+      if (groupsState.searchTerm &&
+          !g.name.toLowerCase().includes(groupsState.searchTerm) &&
+          !g.description.toLowerCase().includes(groupsState.searchTerm)) {
+        return false;
+      }
+      return true;
+    });
+  }
+
+  function renderGroups() {
+      let filtered = getFilteredGroups();
+
+    // Sort
+    filtered.sort((a, b) => {
+      let valA, valB;
+      if (groupsState.sortKey === 'memberCount') {
+        valA = a.members.length;
+        valB = b.members.length;
+      } else {
+        valA = a[groupsState.sortKey];
+        valB = b[groupsState.sortKey];
+      }
+      if (typeof valA === 'string') { valA = valA.toLowerCase(); valB = valB.toLowerCase(); }
+      if (valA < valB) return groupsState.sortDir === 'asc' ? -1 : 1;
+      if (valA > valB) return groupsState.sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    // Pagination
+    let perPage = groupsState.rowsPerPage === 'All' ? filtered.length : Number(groupsState.rowsPerPage);
+    if (perPage === 0) perPage = filtered.length;
+    const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+    if (groupsState.page > totalPages) groupsState.page = totalPages;
+    const start = (groupsState.page - 1) * perPage;
+    const pageData = perPage === 0 ? filtered : filtered.slice(start, start + perPage);
+
+    const tbody = document.getElementById('groupsTbody');
+    if (pageData.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No groups</td></tr>';
+    } else {
+      tbody.innerHTML = pageData.map(g => `
+        <tr>
+          <td>${g.id}</td>
+          <td><strong>${escapeHtml(g.name)}</strong></td>
+          <td>${escapeHtml(g.description)}</td>
+          <td><span class="badge ${g.status.toLowerCase()}">${g.status}</span></td>
+          <td><span class="badge count">${g.members.length}</span></td>
+          <td>${escapeHtml(g.created)}</td>
+          <td class="actions" style="white-space:nowrap;">
+            <button class="button-secondary" onclick="openMembersModal(${g.id})">Members</button>
+            <button class="button-secondary" onclick="editGroup(${g.id})">Edit</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    document.getElementById('groupsPageInfo').innerText = `Page ${groupsState.page} of ${totalPages}`;
+    document.getElementById('groupsPrevBtn').disabled = groupsState.page <= 1;
+    document.getElementById('groupsNextBtn').disabled = groupsState.page >= totalPages;
+    document.getElementById('groupsEmptyMsg').style.display = filtered.length === 0 ? 'block' : 'none';
+
+    // Sort indicators
+    document.querySelectorAll('#groupsTable th[data-sort]').forEach(th => th.classList.remove('sort-asc', 'sort-desc'));
+    const activeTh = document.querySelector(`#groupsTable th[data-sort="${groupsState.sortKey}"]`);
+    if (activeTh) activeTh.classList.add(`sort-${groupsState.sortDir}`);
+  }
+
+  // --- Group CRUD ---
+  function openGroupModal(editMode) {
+    document.getElementById('groupModal').style.display = 'flex';
+    if (!editMode) {
+      editingGroupId = null;
+      document.getElementById('groupModalTitle').innerText = 'Create Group';
+      document.getElementById('groupName').value = '';
+      document.getElementById('groupDesc').value = '';
+    }
+  }
+
+    function editGroup(id) {
+    const g = getGroupById(id);
+    if (!g) return;
+    editingGroupId = id;
+    document.getElementById('groupModalTitle').innerText = 'Edit Group';
+    document.getElementById('groupName').value = g.name;
+    document.getElementById('groupDesc').value = g.description;
+    document.getElementById('groupStatus').value = g.status;
+    document.getElementById('groupModal').style.display = 'flex';
+  }
+
+  function saveGroup() {
+    const name = document.getElementById('groupName').value.trim();
+    const description = document.getElementById('groupDesc').value.trim();
+    const status = document.getElementById('groupStatus').value;
+    if (!name) {
+      showToast('Group name is required');
+      return;
+    }
+    if (editingGroupId === null) {
+      // Create
+      const newId = groupsData.length ? Math.max(...groupsData.map(g => g.id)) + 1 : 1;
+      groupsData.push({
+        id: newId,
+        name: name,
+        description: description,
+        status: status,
+        members: [],
+        created: new Date().toISOString().slice(0, 10)
+      });
+      showToast(`Group "${name}" created`);
+    } else {
+      // Edit
+      const idx = groupsData.findIndex(g => g.id === editingGroupId);
+      if (idx !== -1) {
+        groupsData[idx].name = name;
+        groupsData[idx].description = description;
+        groupsData[idx].status = status;
+        showToast(`Group "${name}" updated`);
+      }
+    }
+    document.getElementById('groupModal').style.display = 'none';
+    renderGroups();
+  }
+
+    function quickChangeGroupStatus(id, newStatus) {
+    const g = getGroupById(id);
+    if (!g) return;
+    const currentRole = document.getElementById('currentRoleSelector').value;
+    if (currentRole !== 'Admin') {
+      showToast('Only Admin can change group status', true);
+      return;
+    }
+    g.status = newStatus;
+    showToast(`Group "${g.name}" status changed to ${newStatus}`);
+    renderGroups();
+  }
+
+  function renderMembersList() {
+    const g = getGroupById(viewingGroupId);
+    if (!g) return;
+    const tbody = document.getElementById('membersTbody');
+
+    if (g.members.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:16px; color:#9CA3AF;">No members in this group</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = g.members.map(userId => {
+      const u = getUserById(userId);
+      if (!u) return '';
+      return `
+        <tr>
+          <td style="padding:8px 12px;">${escapeHtml(u.login)}</td>
+          <td style="padding:8px 12px;">${escapeHtml(u.email)}</td>
+          <td style="padding:8px 12px;">
+            <button class="button-danger" onclick="removeMember(${userId})" style="font-size:12px; padding:4px 8px;">Remove</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // --- Autocomplete for member search ---
+  function buildMemberSuggestions(filter) {
+    const minChars = 1;
+    if (filter.length < minChars) return [];
+    const lower = filter.toLowerCase();
+    const g = getGroupById(viewingGroupId);
+    if (!g) return [];
+    return allUsers.filter(u => {
+      // User not already in group and matches filter
+      if (g.members.includes(u.id)) return false;
+      return u.login.toLowerCase().includes(lower) || u.email.toLowerCase().includes(lower);
+  });
+  }
+
+  function renderMemberAutocomplete(suggestions) {
+    const container = document.getElementById('memberAutocomplete');
+    container.innerHTML = '';
+    if (suggestions.length === 0) {
+      container.classList.remove('open');
+      return;
+    }
+    container.classList.add('open');
+    suggestions.forEach(u => {
+      const div = document.createElement('div');
+      div.className = 'autocomplete-item';
+      div.textContent = `${u.login} (${u.email})`;
+      div.dataset.userId = u.id;
+      div.onclick = () => {
+        document.getElementById('memberSearchInput').value = u.login;
+        container.classList.remove('open');
+        container.innerHTML = '';
+        addMemberToGroup(u.id);
+      };
+      container.appendChild(div);
+    });
+  }
+
+  function handleMemberSearchInput() {
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(() => {
+      const val = document.getElementById('memberSearchInput').value.trim();
+      const suggestions = buildMemberSuggestions(val);
+      renderMemberAutocomplete(suggestions);
+    }, 200);
+  }
+
+  function addMemberToGroup(userId) {
+    if (!viewingGroupId) return;
+    const g = getGroupById(viewingGroupId);
+    if (!g) return;
+    // Check if already member
+    if (g.members.includes(userId)) {
+      showToast('User is already a member', true);
+      return;
+    }
+    g.members.push(userId);
+    showToast(`User added to group`);
+    document.getElementById('memberSearchInput').value = '';
+    const autocomplete = document.getElementById('memberAutocomplete');
+    autocomplete.classList.remove('open');
+    autocomplete.innerHTML = '';
+    renderMembersList();
+    renderGroups(); // Update table count
+  }
+
+  function removeMember(userId) {
+    if (!viewingGroupId) return;
+    const g = getGroupById(viewingGroupId);
+    if (!g) return;
+    g.members = g.members.filter(id => id !== userId);
+    showToast(`User removed from group`);
+    renderMembersList();
+    renderGroups();
+  }
+
+  // --- Event handlers ---
+  document.addEventListener('DOMContentLoaded', () => {
+    updateAccessUI();
+    renderGroups();
+
+    // Role selector
+    document.getElementById('currentRoleSelector').addEventListener('change', updateAccessUI);
+
+    // Create group
+    document.getElementById('createGroupBtn').addEventListener('click', () => openGroupModal(false));
+
+    // Group Modal
+    document.getElementById('saveGroupBtn').addEventListener('click', saveGroup);
+    document.getElementById('closeGroupModalBtn').addEventListener('click', () => {
+      document.getElementById('groupModal').style.display = 'none';
+    });
+
+    // Members Modal
+    document.getElementById('closeMembersModalBtn').addEventListener('click', () => {
+      document.getElementById('membersModal').style.display = 'none';
+    });
+    document.getElementById('memberSearchInput').addEventListener('input', handleMemberSearchInput);
+    document.getElementById('addMemberBtn').addEventListener('click', () => {
+      const val = document.getElementById('memberSearchInput').value.trim();
+      if (!val) return;
+      // Try to find matching user
+      const users = buildMemberSuggestions(val);
+      if (users.length === 1) {
+        addMemberToGroup(users[0].id);
+      } else if (users.length === 0) {
+        showToast('No matching user found', true);
+      } else {
+        showToast('Please select from suggestions', true);
+      }
+    });
+
+    // Click outside autocomplete to close
+    document.addEventListener('click', (e) => {
+      const input = document.getElementById('memberSearchInput');
+      const container = document.getElementById('memberAutocomplete');
+      if (!input.contains(e.target) && !container.contains(e.target)) {
+        container.classList.remove('open');
+        container.innerHTML = '';
+      }
+    });
+
+
+
+    // Filters
+    document.getElementById('applyFiltersBtn').addEventListener('click', () => {
+      groupsState.searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+      groupsState.page = 1;
+      renderGroups();
+    });
+    document.getElementById('clearFiltersBtn').addEventListener('click', () => {
+      document.getElementById('searchInput').value = '';
+      groupsState.searchTerm = '';
+      groupsState.page = 1;
+      renderGroups();
+    });
+    document.getElementById('searchInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        document.getElementById('applyFiltersBtn').click();
+      }
+    });
+
+    // Sort
+    document.querySelectorAll('#groupsTable th[data-sort]').forEach(th => {
+      th.addEventListener('click', () => {
+        const key = th.dataset.sort;
+        if (groupsState.sortKey === key) {
+          groupsState.sortDir = groupsState.sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+          groupsState.sortKey = key;
+          groupsState.sortDir = 'asc';
+        }
+        renderGroups();
+      });
+    });
+
+    // Pagination
+    document.getElementById('groupsPrevBtn').addEventListener('click', () => {
+      if (groupsState.page > 1) { groupsState.page--; renderGroups(); }
+    });
+    document.getElementById('groupsNextBtn').addEventListener('click', () => {
+      let filtered = getFilteredGroups();
+      let perPage = groupsState.rowsPerPage === 'All' ? filtered.length : Number(groupsState.rowsPerPage);
+      let totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+      if (groupsState.page < totalPages) { groupsState.page++; renderGroups(); }
+    });
+    document.getElementById('groupsPerPageSelect').addEventListener('change', (e) => {
+      groupsState.rowsPerPage = e.target.value;
+      groupsState.page = 1;
+      renderGroups();
+    });
+
+    // Close modals on background click
+    window.onclick = (e) => {
+      if (e.target.classList.contains('modal')) {
+        e.target.style.display = 'none';
+      }
+    };
+  });
+</script>
+</body>
+</html>
+
