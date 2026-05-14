@@ -5,7 +5,12 @@
     "priority": 1,
     "title": "Администрирование и Безопасность (Admin & Security)",
     "description": "Управление доступом, пользователями и системными настройками. Без пользователей и пространств невозможно создавать документы.",
-    "assignees": ["val-5", "avekIT47", "MatushaI", "uretskayaaol"],
+    "assignees": [
+      "val-5",
+      "avekIT47",
+      "MatushaI",
+      "uretskayaaol"
+    ],
     "metadata": {
       "tags": [],
       "requirements_check": [
@@ -24,7 +29,11 @@
         "type": "Feature",
         "title": "Управление пользователями (RBAC)",
         "description": "Регистрация, авторизация и роли (Admin, Editor, Reader).",
-        "assignees": ["val-5", "avekIT47", "uretskayaaol"],
+        "assignees": [
+          "val-5",
+          "avekIT47",
+          "uretskayaaol"
+        ],
         "metadata": {
           "tags": [
             "MVP"
@@ -80,7 +89,9 @@
             "assignees": "val-5",
             "complexity": 7,
             "metadata": {
-              "tags": ["MVP"],
+              "tags": [
+                "MVP"
+              ],
               "requirements_check": [
                 {
                   "document": "base-requirements.md",
@@ -158,8 +169,7 @@
             "assignees": "avekIT47",
             "complexity": 3,
             "metadata": {
-              "tags": [
-              ],
+              "tags": [],
               "requirements_check": [
                 {
                   "document": "base-requirements.md",
@@ -181,7 +191,12 @@
             "assignees": "uretskayaaol",
             "complexity": 4,
             "metadata": {
-              "tags": ["Frontend", "Admin", "Thymeleaf", "Tables"],
+              "tags": [
+                "Frontend",
+                "Admin",
+                "Thymeleaf",
+                "Tables"
+              ],
               "requirements_check": [
                 {
                   "document": "base-requirements.md",
@@ -212,7 +227,10 @@
             "assignees": "avekIT47",
             "complexity": 3,
             "metadata": {
-              "tags": ["Admin", "Security"],
+              "tags": [
+                "Admin",
+                "Security"
+              ],
               "requirements_check": [
                 {
                   "document": "base-requirements.md",
@@ -224,7 +242,7 @@
             },
             "children": []
           },
-                    {
+          {
             "id": "US4.1.8",
             "type": "UserStory",
             "title": "Создание и управление группами",
@@ -234,7 +252,10 @@
             "assignees": "val-5",
             "complexity": 4,
             "metadata": {
-              "tags": ["Admin", "RBAC"]
+              "tags": [
+                "Admin",
+                "RBAC"
+              ]
             },
             "children": []
           },
@@ -248,7 +269,10 @@
             "assignees": "val-5",
             "complexity": 4,
             "metadata": {
-              "tags": ["Admin", "RBAC"]
+              "tags": [
+                "Admin",
+                "RBAC"
+              ]
             },
             "children": []
           }
@@ -259,7 +283,9 @@
         "type": "Feature",
         "title": "Управление Пространствами",
         "description": "Создание Пространств и настройка прав доступа.",
-        "assignees": ["avekIT47"],
+        "assignees": [
+          "avekIT47"
+        ],
         "metadata": {
           "tags": [
             "MVP"
@@ -282,7 +308,7 @@
             "as_a": "Администратор",
             "i_want": "создавать и редактировать рабочие пространства (Spaces)",
             "so_that": "логически структурировать базу знаний организации.",
-            "assignees": "avekIT47",
+            "assignees": "polina-dudukova",
             "complexity": 4,
             "metadata": {
               "tags": [
@@ -347,7 +373,9 @@
         "type": "Feature",
         "title": "Системные уведомления",
         "description": "Рассылка Email об изменениях в системе.",
-        "assignees": ["avekIT47"],
+        "assignees": [
+          "avekIT47"
+        ],
         "metadata": {
           "tags": [],
           "requirements_check": [
@@ -370,7 +398,9 @@
             "assignees": "avekIT47",
             "complexity": 4,
             "metadata": {
-              "tags": ["Backend"],
+              "tags": [
+                "Backend"
+              ],
               "requirements_check": [
                 {
                   "document": "base-requirements.md",
@@ -380,7 +410,10 @@
                   ]
                 },
                 {
-                  "document": ["logic_scheme.md", "base_requirements.md"],
+                  "document": [
+                    "logic_scheme.md",
+                    "base_requirements.md"
+                  ],
                   "texts": [
                     "Асинхронная отправка уведомлений (например, при изменении страницы, регистрации)"
                   ]
@@ -399,7 +432,10 @@
             "assignees": "avekIT47",
             "complexity": 4,
             "metadata": {
-              "tags": ["Admin", "Configuration"],
+              "tags": [
+                "Admin",
+                "Configuration"
+              ],
               "requirements_check": [
                 {
                   "document": "base-requirements.md",
@@ -418,7 +454,9 @@
         "type": "Feature",
         "title": "Производительность системы",
         "description": "Оптимизация времени отклика и работы под нагрузкой.",
-        "assignees": ["MatushaI"],
+        "assignees": [
+          "MatushaI"
+        ],
         "metadata": {
           "tags": [],
           "requirements_check": [
@@ -463,7 +501,11 @@
             "assignees": "val-5",
             "complexity": 3,
             "metadata": {
-              "tags": ["Backend", "API", "Documentation"]
+              "tags": [
+                "Backend",
+                "API",
+                "Documentation"
+              ]
             }
           }
         ]
@@ -476,7 +518,13 @@
     "priority": 2,
     "title": "Управление контентом (Content Management)",
     "description": "Основной функционал по работе с документами, шаблонами и вложениями.",
-    "assignees": ["chudnik", "polina-dudukova", "uretskayaaol", "g1obyyy", "prosteyshee"],
+    "assignees": [
+      "chudnik",
+      "polina-dudukova",
+      "uretskayaaol",
+      "g1obyyy",
+      "prosteyshee"
+    ],
     "metadata": {
       "tags": [],
       "requirements_check": [
@@ -495,7 +543,12 @@
         "type": "Feature",
         "title": "Редактор документов",
         "description": "Создание и редактирование документов с поддержкой Wiki-разметки и автонумерации.",
-        "assignees": ["chudnik", "polina-dudukova", "uretskayaaol", "prosteyshee"],
+        "assignees": [
+          "chudnik",
+          "polina-dudukova",
+          "uretskayaaol",
+          "prosteyshee"
+        ],
         "metadata": {
           "tags": [
             "MVP"
@@ -526,7 +579,12 @@
             "assignees": "chudnik",
             "complexity": 8,
             "metadata": {
-              "tags": ["Frontend", "MVP", "Tiptap", "Editor"],
+              "tags": [
+                "Frontend",
+                "MVP",
+                "Tiptap",
+                "Editor"
+              ],
               "requirements_check": [
                 {
                   "document": "logic_scheme.md",
@@ -573,8 +631,7 @@
             "assignees": "polina-dudukova",
             "complexity": 3,
             "metadata": {
-              "tags": [
-              ],
+              "tags": [],
               "requirements_check": [
                 {
                   "document": "base-requirements.md",
@@ -596,7 +653,11 @@
             "assignees": "uretskayaaol",
             "complexity": 5,
             "metadata": {
-              "tags": ["Frontend", "Security", "MVP"],
+              "tags": [
+                "Frontend",
+                "Security",
+                "MVP"
+              ],
               "requirements_check": [
                 {
                   "document": "logic_scheme.md",
@@ -618,7 +679,12 @@
             "assignees": "prosteyshee",
             "complexity": 3,
             "metadata": {
-              "tags": ["Frontend", "MVP", "Thymeleaf", "UI"],
+              "tags": [
+                "Frontend",
+                "MVP",
+                "Thymeleaf",
+                "UI"
+              ],
               "requirements_check": [
                 {
                   "document": "110.ui-ux.md",
@@ -640,7 +706,12 @@
             "assignees": "prosteyshee",
             "complexity": 3,
             "metadata": {
-              "tags": ["Frontend", "MVP", "Thymeleaf", "Forms"],
+              "tags": [
+                "Frontend",
+                "MVP",
+                "Thymeleaf",
+                "Forms"
+              ],
               "requirements_check": [
                 {
                   "document": "base-requirements.md",
@@ -662,7 +733,11 @@
             "assignees": "polina-dudukova",
             "complexity": 4,
             "metadata": {
-              "tags": ["Security", "RBAC", "Backend"],
+              "tags": [
+                "Security",
+                "RBAC",
+                "Backend"
+              ],
               "requirements_check": [
                 {
                   "document": "base-requirements.md",
@@ -681,7 +756,10 @@
         "type": "Feature",
         "title": "Шаблоны документов",
         "description": "Наборы шаблонов для различных ролей (Разработчик, Аналитик, Администратор).",
-        "assignees": ["polina-dudukova", "chudnik"],
+        "assignees": [
+          "polina-dudukova",
+          "chudnik"
+        ],
         "metadata": {
           "tags": [],
           "requirements_check": [
@@ -745,7 +823,9 @@
         "type": "Feature",
         "title": "Вложения",
         "description": "Загрузка и управление прикрепленными файлами.",
-        "assignees": ["chudnik"],
+        "assignees": [
+          "chudnik"
+        ],
         "metadata": {
           "tags": [],
           "requirements_check": [
@@ -797,12 +877,15 @@
             "assignees": "chudnik",
             "complexity": 3,
             "metadata": {
-              "tags": ["Content", "Management"],
+              "tags": [
+                "Content",
+                "Management"
+              ],
               "requirements_check": []
             },
             "children": []
           },
-                    {
+          {
             "id": "US1.3.3",
             "type": "UserStory",
             "title": "Скачивание вложенного файла",
@@ -812,7 +895,10 @@
             "assignees": "chudnik",
             "complexity": 3,
             "metadata": {
-              "tags": ["Content", "Management"],
+              "tags": [
+                "Content",
+                "Management"
+              ],
               "requirements_check": []
             },
             "children": []
@@ -824,13 +910,19 @@
         "type": "Feature",
         "title": "Blob-хранилище для файловых вложений",
         "description": "Отдельное хранилище для изображений и бинарных файлов, не входящее в Git-репозиторий.",
-        "assignees": ["g1obyyy"],
+        "assignees": [
+          "g1obyyy"
+        ],
         "metadata": {
-          "tags": ["Backend"],
+          "tags": [
+            "Backend"
+          ],
           "requirements_check": [
             {
               "document": "logic_scheme.md",
-              "texts": ["Blob хранилище - изображения/вложения - отдельная папка"]
+              "texts": [
+                "Blob хранилище - изображения/вложения - отдельная папка"
+              ]
             }
           ]
         },
@@ -845,11 +937,15 @@
             "assignees": "g1obyyy",
             "complexity": 5,
             "metadata": {
-              "tags": ["Backend"],
+              "tags": [
+                "Backend"
+              ],
               "requirements_check": [
                 {
                   "document": "logic_scheme.md",
-                  "texts": ["POST /api/blobs (multipart) → сервис сохраняет файл в Blob-хранилище → записывает ссылку в БД"]
+                  "texts": [
+                    "POST /api/blobs (multipart) → сервис сохраняет файл в Blob-хранилище → записывает ссылку в БД"
+                  ]
                 }
               ]
             },
@@ -865,11 +961,15 @@
             "assignees": "g1obyyy",
             "complexity": 3,
             "metadata": {
-              "tags": ["Backend"],
+              "tags": [
+                "Backend"
+              ],
               "requirements_check": [
                 {
                   "document": "logic_scheme.md",
-                  "texts": ["Ссылки на blob-объекты хранятся в метаданных PostgreSQL"]
+                  "texts": [
+                    "Ссылки на blob-объекты хранятся в метаданных PostgreSQL"
+                  ]
                 }
               ]
             },
@@ -885,7 +985,11 @@
     "priority": 3,
     "title": "Навигация и Поиск (Navigation & Search)",
     "description": "Инструменты для быстрого нахождения информации.",
-    "assignees": ["chudnik", "polina-dudukova", "prosteyshee"],
+    "assignees": [
+      "chudnik",
+      "polina-dudukova",
+      "prosteyshee"
+    ],
     "metadata": {
       "tags": [
         "MVP"
@@ -906,7 +1010,10 @@
         "type": "Feature",
         "title": "Поиск и фильтрация",
         "description": "Поиск по названию, дате и пагинация результатов.",
-        "assignees": ["chudnik", "polina-dudukova"],
+        "assignees": [
+          "chudnik",
+          "polina-dudukova"
+        ],
         "metadata": {
           "tags": [
             "MVP"
@@ -1004,7 +1111,10 @@
             "assignees": "chudnik",
             "complexity": 3,
             "metadata": {
-              "tags": ["Admin", "Search"],
+              "tags": [
+                "Admin",
+                "Search"
+              ],
               "requirements_check": []
             },
             "children": []
@@ -1019,7 +1129,9 @@
             "assignees": "chudnik",
             "complexity": 3,
             "metadata": {
-              "tags": ["Search"],
+              "tags": [
+                "Search"
+              ],
               "requirements_check": []
             },
             "children": []
@@ -1031,7 +1143,9 @@
         "type": "Feature",
         "title": "Структура и Оглавление",
         "description": "Иерархическое дерево документов и навигация по Пространствам.",
-        "assignees": ["polina-dudukova"],
+        "assignees": [
+          "polina-dudukova"
+        ],
         "metadata": {
           "tags": [
             "MVP"
@@ -1079,7 +1193,12 @@
         "description": "Создание мастер-страниц, навигационных панелей и стилей, на основе которых строятся все остальные страницы приложения.",
         "assignees": "prosteyshee",
         "metadata": {
-          "tags": ["Frontend", "MVP", "Thymeleaf", "CSS"],
+          "tags": [
+            "Frontend",
+            "MVP",
+            "Thymeleaf",
+            "CSS"
+          ],
           "requirements_check": [
             {
               "document": "110.ui-ux.md",
@@ -1101,7 +1220,12 @@
             "assignees": "prosteyshee",
             "complexity": 5,
             "metadata": {
-              "tags": ["Frontend", "MVP", "Thymeleaf", "Layout"]
+              "tags": [
+                "Frontend",
+                "MVP",
+                "Thymeleaf",
+                "Layout"
+              ]
             },
             "children": []
           },
@@ -1115,7 +1239,12 @@
             "assignees": "prosteyshee",
             "complexity": 6,
             "metadata": {
-              "tags": ["Frontend", "MVP", "Thymeleaf", "CSS"]
+              "tags": [
+                "Frontend",
+                "MVP",
+                "Thymeleaf",
+                "CSS"
+              ]
             },
             "children": []
           }
@@ -1129,7 +1258,11 @@
     "priority": 4,
     "title": "Жизненный цикл и Версионность (Lifecycle & Versioning)",
     "description": "Управление статусами документов и историей их изменений через Git.",
-    "assignees": ["g1obyyy", "Nigmatul", "uretskayaaol"],
+    "assignees": [
+      "g1obyyy",
+      "Nigmatul",
+      "uretskayaaol"
+    ],
     "metadata": {
       "tags": [],
       "requirements_check": [
@@ -1148,7 +1281,9 @@
         "type": "Feature",
         "title": "Workflow документа",
         "description": "Управление жизненным циклом: Draft, Published, Deleted.",
-        "assignees": ["g1obyyy"],
+        "assignees": [
+          "g1obyyy"
+        ],
         "metadata": {
           "tags": [],
           "requirements_check": [
@@ -1235,7 +1370,11 @@
         "type": "Feature",
         "title": "Контроль версий (Git Integration)",
         "description": "Интеграция с Git для хранения истории и сравнения версий.",
-        "assignees": ["Nigmatul", "g1obyyy", "uretskayaaol"],
+        "assignees": [
+          "Nigmatul",
+          "g1obyyy",
+          "uretskayaaol"
+        ],
         "metadata": {
           "tags": [
             "MVP"
@@ -1370,15 +1509,22 @@
             "assignees": "Nigmatul",
             "complexity": 8,
             "metadata": {
-              "tags": ["Backend", "MVP"],
+              "tags": [
+                "Backend",
+                "MVP"
+              ],
               "requirements_check": [
                 {
                   "document": "base-requirements.md",
-                  "texts": ["Управление версиями документов через Git на сервере"]
+                  "texts": [
+                    "Управление версиями документов через Git на сервере"
+                  ]
                 },
                 {
                   "document": "logic_scheme.md",
-                  "texts": ["JGit — Git операции с CLI"]
+                  "texts": [
+                    "JGit — Git операции с CLI"
+                  ]
                 }
               ]
             },
@@ -1394,7 +1540,12 @@
             "assignees": "uretskayaaol",
             "complexity": 8,
             "metadata": {
-              "tags": ["Frontend", "Thymeleaf", "UI", "Diff"]
+              "tags": [
+                "Frontend",
+                "Thymeleaf",
+                "UI",
+                "Diff"
+              ]
             },
             "children": []
           },
@@ -1408,7 +1559,10 @@
             "assignees": "Nigmatul",
             "complexity": 8,
             "metadata": {
-              "tags": ["Backend", "Reliability"]
+              "tags": [
+                "Backend",
+                "Reliability"
+              ]
             }
           }
         ]
@@ -1421,7 +1575,10 @@
     "priority": 5,
     "title": "Экспорт и Отчетность (Export)",
     "description": "Выгрузка данных из системы в различных форматах.",
-    "assignees": ["MatushaI", "uretskayaaol"],
+    "assignees": [
+      "MatushaI",
+      "uretskayaaol"
+    ],
     "metadata": {
       "tags": [],
       "requirements_check": [
