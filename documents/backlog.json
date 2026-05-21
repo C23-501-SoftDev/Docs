@@ -359,9 +359,7 @@
             "assignees": "avekIT47",
             "complexity": 5,
             "metadata": {
-              "tags": [
-                "MVP"
-              ],
+              "tags": [],
               "requirements_check": []
             },
             "children": []
