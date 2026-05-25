@@ -110,6 +110,11 @@
         color: #95a5a6;
         margin-right: 5px;
         font-size: 0.85em;
+        cursor: copy;
+      }
+      .id:hover {
+        color: #3498db;
+        text-decoration: underline;
       }
       .priority-badge {
         display: inline-block;
@@ -839,6 +844,14 @@
         document.getElementById(modalId || "reqModal").style.display = "none";
       }
 
+      function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+          console.log('Copied to clipboard: ' + text);
+        }).catch(err => {
+          console.error('Could not copy text: ', err);
+        });
+      }
+
       async function showDetails(id) {
         const modal = document.getElementById("detailsModal");
         const body = document.getElementById("detailsBody");
@@ -1006,7 +1019,7 @@
                 <div class="node-header">
                     ${toggleIcon}
                     <span class="type-badge ${node.type}">${node.type}</span>
-                    <span class="id">${node.id}</span>
+                    <span class="id" title="Нажмите, чтобы скопировать ID и название в буфер обмена" onclick="event.stopPropagation(); copyToClipboard('${node.id} ${node.title.replace(/'/g, "\\'")}')">${node.id}</span>
                     <span class="title">${node.title}</span>
                     ${priorityHtml}
                     ${complexityHtml}
