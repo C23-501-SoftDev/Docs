@@ -10,21 +10,24 @@
 ### Основные цвета
 | Назначение        | Цвет        | HEX       |
 |------------------|------------|----------|
-| Primary          | Синий      | #2563EB  |
+| Primary          | Indigo     | #6366F1  |
+| Primary Hover    | Indigo     | #4F46E5  |
+| Primary Light    | Светлый    | #EEF2FF  |
 | Secondary        | Серый      | #6B7280  |
-| Background       | Светлый    | #F9FAFB  |
+| Background       | Светлый    | #F8FAFC  |
 | Surface          | Белый      | #FFFFFF  |
-| Border           | Светло-серый | #E5E7EB |
+| Border           | Светло-серый | #E2E8F0 |
+| Text Primary     | Тёмный     | #0F172A  |
+| Text Secondary   | Серый      | #475569  |
 
 ---
 
 ### Состояния
 | Состояние  | Цвет       | HEX       |
 |-----------|-----------|----------|
-| Success   | Зеленый   | #16A34A  |
-| Error     | Красный   | #DC2626  |
+| Success   | Зеленый   | #22C55E  |
+| Error     | Красный   | #EF4444  |
 | Warning   | Оранжевый | #F59E0B  |
-| Info      | Голубой   | #0EA5E9  |
 
 ---
 
@@ -36,7 +39,7 @@
 ### Размеры
 | Элемент        | Размер |
 |---------------|--------|
-| Заголовок H1  | 32px   |
+| Заголовок H1  | 24px (в document-view) |
 | Заголовок H2  | 24px   |
 | Заголовок H3  | 20px   |
 | Основной текст| 16px   |
@@ -65,15 +68,15 @@
 ## Кнопки
 
 ### Primary Button
-background: #2563EB;
+background: #6366F1;
 color: white;
-border-radius: 8px;
+border-radius: 6px;
 padding: 8px 16px;
 
 
 ### Secondary Button
-background: #E5E7EB;
-color: #111827;
+background: #E2E8F0;
+color: #0F172A;
 
 ### Hover
 opacity: 0.9;
@@ -83,15 +86,15 @@ opacity: 0.9;
 ## Карточки и контейнеры
 
 background: #FFFFFF;
-border: 1px solid #E5E7EB;
-border-radius: 12px;
+border: 1px solid #E2E8F0;
+border-radius: 16px;
 padding: 16px;
-box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 
 ## Таблицы
 - Ширина 100%
-- Заголовок (thead): background #F9FAFB, font-weight 600, border-bottom 2px solid #E5E7EB
-- Строки (tbody tr): border-bottom 1px solid #E5E7EB
+- Заголовок (thead): background #F8FAFC, font-weight 600, border-bottom 2px solid #E2E8F0
+- Строки (tbody tr): border-bottom 1px solid #E2E8F0
 - Отступы (padding): 12px 16px
 - Текст при наведении (hover): background #F3F4F6
 
@@ -103,8 +106,8 @@ box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 ## Пагинация
 - Контейнер: flex, gap 8px, align-items center
 - Кнопки (страницы):
-  - Normal: border 1px solid #E5E7EB; background #FFFFFF
-  - Active: background #2563EB; color #FFFFFF; border none
+  - Normal: border 1px solid #E2E8F0; background #FFFFFF
+  - Active: background #6366F1; color #FFFFFF; border none
   - Disabled: opacity 0.5, cursor not-allowed
 
 ## Навигация
@@ -121,21 +124,44 @@ color: #1D4ED8;
 ## Формы
 
 ### Input
-border: 1px solid #E5E7EB;
+border: 1px solid #E2E8F0;
 border-radius: 6px;
 padding: 8px;
 
 ### Focus
-border-color: #2563EB;
+border-color: #6366F1;
 outline: none;
 
 ---
 
+## Базовые CSS-переменные
+```css
+:root {
+    --primary-color: #6366f1;
+    --primary-hover: #4f46e5;
+    --primary-light: #eef2ff;
+    --secondary-color: #6b7280;
+    --danger-color: #ef4444;
+    --success-color: #22c55e;
+    --bg-color: #f8fafc;
+    --text-color: #0f172a;
+    --text-secondary: #475569;
+    --border-color: #e2e8f0;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+    --transition: all 0.2s ease;
+}
+```
+
 ## Базовые CSS стили
 body {
 font-family: Inter, Arial, sans-serif;
-background-color: #F9FAFB;
-color: #111827;
+background-color: #F8FAFC;
+color: #0F172A;
 margin: 0;
 }
 

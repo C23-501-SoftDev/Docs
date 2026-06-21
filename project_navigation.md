@@ -110,7 +110,7 @@ User Stories описаны в `backlog.json` и детализированы в
 ### 5.1. Стек технологий
 Из `base-requirements.md`:
 - **Бэкенд:** Java 17+, Spring Boot, Spring Security, Spring Data JPA, Maven, JGit
-- **Фронтенд:** Thymeleaf (SSR), JavaScript/TypeScript, Tiptap Editor (WYSIWYG)
+- **Фронтенд:** Thymeleaf (SSR), JavaScript, Markdown-редактор с предпросмотром
 - **БД:** PostgreSQL 18
 - **Хранилище:** Git (для .md файлов), Blob (для вложений)
 - **Уведомления:** SMTP (асинхронная рассылка)

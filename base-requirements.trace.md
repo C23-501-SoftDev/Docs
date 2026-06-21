@@ -501,7 +501,7 @@ stateDiagram-v2
 
 ### Технические требования
 
-1. **Стек технологий:** Java 17+, Spring Boot, Spring Security, Spring Data JPA, Maven, Thymeleaf, JavaScript, Tiptap Editor, PostgreSQL 18.
+1. **Стек технологий:** Java 17+, Spring Boot, Spring Security, Spring Data JPA, Maven, Thymeleaf, JavaScript, Markdown-редактор (marked.js), PostgreSQL 18.
 [
    - **Требование:** Стек технологий
    - **Статус:** Покрыто
